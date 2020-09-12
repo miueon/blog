@@ -3,7 +3,7 @@ package com.miueon.blog.pojo
 import java.util.*
 
 class userDto(
-        var id: Int? = null,
+        var id: Long? = null,
         var email: String? = null,
         var password: String? = null,
         var username: String? = null,

@@ -48,6 +48,7 @@ constructor(val userService: UserService) {
 
     @PostMapping("/user")
     fun getUser(request: HttpServletRequest, response: HttpServletResponse): ResponseEntity<userDto> {
-        return ResponseEntity(SecurityUtils.getSubject().principal as userDto, HttpStatus.OK)
+        val result =  ResponseEntity(SecurityUtils.getSubject().principal as userDto, HttpStatus.OK)
+        return result
     }
 }

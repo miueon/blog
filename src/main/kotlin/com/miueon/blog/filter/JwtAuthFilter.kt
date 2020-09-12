@@ -10,6 +10,7 @@ import org.apache.http.HttpStatus
 import org.apache.shiro.authc.AuthenticationException
 import org.apache.shiro.authc.AuthenticationToken
 import org.apache.shiro.subject.Subject
+import org.apache.shiro.web.filter.PathMatchingFilter
 import org.apache.shiro.web.filter.authc.AuthenticatingFilter
 import org.apache.shiro.web.util.WebUtils
 import org.slf4j.LoggerFactory
@@ -30,8 +31,7 @@ class JwtAuthFilter(private  var userService: UserService) : AuthenticatingFilte
 
     //private var methods: MutableSet<String>? = null
 
-    private val methodSet = setOf(RequestMethod.PUT.name,
-            RequestMethod.POST.name, RequestMethod.DELETE.name, RequestMethod.OPTIONS.name)
+
 
     init {
         this.loginUrl = "/auth/login"
@@ -39,13 +39,10 @@ class JwtAuthFilter(private  var userService: UserService) : AuthenticatingFilte
 
     //    false to continue checking, true to controller
     override fun preHandle(request: ServletRequest?, response: ServletResponse?): Boolean {
-        log.trace("Trace: in preHandle, ${WebUtils.toHttp(request).requestURI}")
-        val httpServletRequest = WebUtils.toHttp(request)
-        if (methodSet.contains(httpServletRequest.method)) {
-            // false will check, true will directly to controller
-            return false
-        }
+       log.trace("Trace: in preHandle, ${WebUtils.toHttp(request).requestURI}")
+
         return super.preHandle(request, response)
+
     }
 
     override fun postHandle(request: ServletRequest?, response: ServletResponse?) {
@@ -98,7 +95,7 @@ class JwtAuthFilter(private  var userService: UserService) : AuthenticatingFilte
         val httpResponse = WebUtils.toHttp(response)
         httpResponse.characterEncoding = "UTF-8"
         httpResponse.contentType = "application/json;charset=UTF-8"
-        httpResponse.status = HttpStatus.SC_NON_AUTHORITATIVE_INFORMATION
+        httpResponse.status = HttpStatus.SC_NOT_FOUND
         fillCorsHeader(WebUtils.toHttp(request), httpResponse)
         return false
     }
@@ -120,9 +117,11 @@ class JwtAuthFilter(private  var userService: UserService) : AuthenticatingFilte
         return true
     }
 
+    // onLoginFailure will direct to onAccessDenied
     override fun onLoginFailure(token: AuthenticationToken?, e: AuthenticationException?,
                                 request: ServletRequest?, response: ServletResponse?): Boolean {
         log.error("Validate token fail, token:{}, error:{}", token.toString(), e!!.message)
+
         return false
     }
 

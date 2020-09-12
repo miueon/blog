@@ -77,4 +77,10 @@ constructor(var userMapper: UserMapper) {
         usrDto.salt = salt
         return usrDto
     }
+
+    fun getUserByUsername(username: String): user {
+        val ktQueryWrapper = KtQueryWrapper(user::class.java)
+        ktQueryWrapper.eq(user::name, username)
+        return userMapper.selectOne(ktQueryWrapper)
+    }
 }

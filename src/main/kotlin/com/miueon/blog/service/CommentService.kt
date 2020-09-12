@@ -19,17 +19,18 @@ class CommentService
 constructor(
         val commentMapper: CommentMapper,
         val postMapper: PostMapper,
-        val usrMapper: UserMapper
+        val usrMapper: UserMapper,
+        val userService:UserService
 ) {
-    fun findById(id: Int): comment? {
+    fun findById(id: Long): comment? {
         return commentMapper.selectById(id)
     }
 
-    fun findPostByCid(pid: Int): post? {
+    fun findPostByCid(pid: Long): post? {
         return postMapper.selectById(pid)
     }
 
-    fun findCommentsByPostId(pid: Int): List<comment>? {
+    fun findCommentsByPostId(pid: Long): List<comment>? {
         val ktQueryWrapper = KtQueryWrapper<comment>(comment::class.java)
         ktQueryWrapper.eq(comment::pid, pid)
         val reuslt = commentMapper.selectList(ktQueryWrapper)
@@ -44,9 +45,11 @@ constructor(
         }
     }
 
-    fun registerComment(comm: comment, usr: user): comment? {
-        val postInctx: post = findPostByCid(comm.pid ?: throw BadRequestException("request without post id"))
+    fun registerComment(comm: comment, username: String): comment? {
+        val postInctx: post = findPostByCid(comm.pid  ?: throw BadRequestException("request without post id"))
                 ?: throw BadRequestException("post doesnt exist in database")
+        val usr = userService.getUserByUsername(username)
+
         val newComment = comment(
                 content = comm.content,
                 pid = comm.pid,
@@ -58,10 +61,16 @@ constructor(
         return newComment
     }
 
-    fun deleteComment(id: Int): Unit {
+    fun deleteComment(id: Long): Unit {
         commentMapper.selectById(id)?.let {
             commentMapper.deleteById(it.id)
         }
+    }
+
+    fun deleteCommentByPostId(id: Long): Unit {
+        val ktQueryWrapper = KtQueryWrapper(comment::class.java)
+        ktQueryWrapper.eq(comment::pid, id)
+        commentMapper.delete(ktQueryWrapper)
     }
 
 }
