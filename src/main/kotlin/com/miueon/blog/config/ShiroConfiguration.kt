@@ -89,7 +89,8 @@ class ShiroConfiguration{
         // TODO: add role support
 
         chainDefinition.addPathDefinition("/auth/**", "noSessionCreation,authcToken")
-        chainDefinition.addPathDefinition("/api/**", "noSessionCreation,authcToken")
+        chainDefinition.addPathDefinition("/api/posts/**", "noSessionCreation,authcToken")
+        chainDefinition.addPathDefinition("/api/comments/**", "noSessionCreation,authcToken")
 
        // chainDefinition.addPathDefinition("/**", "noSessionCreation,authcToken")
 
