@@ -1,14 +1,5 @@
 
 spring:
-  application:
-    name: Blog
-  profiles:
-    active: dev
-  devtools:
-    restart:
-      enabled: true
-    livereload:
-      enabled: true
   datasource:
     url: jdbc:mysql://localhost:3306/blog?useUnicode=true&characterEncoding=UTF-8&serverTimezone=UTC
     username: root
@@ -17,10 +8,14 @@ spring:
   redis:
     timeout: 1000ms
     database: 0
-  aop:
-    proxy-target-class: true
-  mvc:
-    log-request-details: true
+
+  thymeleaf:
+    mode: LEGACYHTML5
+    encoding: UTF-8
+    servlet:
+      content-type: text/html
+    cache: false
+
 server:
   port: 8080
 logging:

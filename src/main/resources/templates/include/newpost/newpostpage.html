@@ -1,0 +1,69 @@
+<script src="https://cdn.jsdelivr.net/npm/vue@2.6.12"></script>
+<div class="container" th:fragment="html" xmlns:th="http://www.thymeleaf.org">
+
+  <div class="panel panel-success addDiv">
+    <div class="panel-heading">New post</div>
+    <div class="panel-body">
+      <table class="addTable">
+        <tr>
+          <td>post title</td>
+          <td>
+            <label>
+              <input v-on:keyup.enter="add"
+                      v-model:trim="title" type="text" class="form-control">
+            </label>
+          </td>
+        </tr>
+        <tr>
+          <td>.md file</td>
+          <td>
+            <input  accept="md/*" type="file" name="post" v-on:change="getFile($event)">
+          </td>
+        </tr>
+        <tr class="submitTR">
+          <td colspan="2">
+            <a href="#nowhere"  @click="add" class="btn btn-success">Submit</a>
+          </td>
+        </tr>
+      </table>
+    </div>
+  </div>
+  <script>
+    let newpost = new Vue({
+      el: "#workingArea",
+      data() {
+        return {
+          uri: "api/posts",
+          title: "",
+          mdFile: null,
+        }
+      },
+      methods: {
+        add: function () {
+          if (!checkEmpty(this.title, "post title ")) {
+            return
+          }
+          if (!checkEmpty(this.mdFile, "md File ")) {
+            return
+          }
+          let url = "api/posts"
+          let formData = new FormData()
+          formData.append("title", this.title)
+          formData.append("md", this.mdFile)
+          axios.post(url, formData)
+            .then(response => {
+              newpost.mdFile = null
+              newpost.title = ""
+            });
+
+        },
+        getFile: function (event) {
+          this.mdFile = event.target.files[0]
+        }
+      },
+      mounted: function () {
+
+      }
+    })
+  </script>
+</div>

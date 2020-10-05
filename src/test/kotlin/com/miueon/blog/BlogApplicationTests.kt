@@ -25,11 +25,7 @@ class BlogApplicationTests
         users.forEach { println(it.toString()) }
     }
 
-    @Test
-    fun testGetPosts() {
-        var posts = postService.findAllByOrderByCreatedDateDescPage(Page<post>(0,2))
-        posts.forEach{println(it.toString())}
-    }
+
 
     @Test
     fun testGetComments() {

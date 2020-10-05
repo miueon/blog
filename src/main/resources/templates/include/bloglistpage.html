@@ -1,0 +1,90 @@
+<script src="https://cdn.jsdelivr.net/npm/vue@2.6.12"></script>
+<div class="container" xmlns:th="http://www.thymeleaf.org" th:fragment="html">
+  <div class="blog-header">
+    <h1 class="blog-title">Miueon</h1>
+    <p class="lead blog-description">The guy pursue for hpf.</p>
+
+  </div>
+
+
+  <div class="row">
+    <div class="col-sm-8 blog-main">
+      <div class="blog-post">
+        <div v-for="ps in posts">
+          <h2 class="blog-post-title"><a :href="'detail?pid=' + ps.id">{{ps.title}}</a></h2>
+          <p class="blog-post-meta">{{formDate(ps.createdDate)}} created by {{ps.userName}}</p>
+          <div v-html="bodyAbbr(ps.body)"></div>
+        </div>
+
+      </div>
+
+      <template v-if="postCondition">
+      <nav>
+        <ul class="pagination">
+          <li :class="{disabled: !pagination.isHasPrevious}">
+            <a  href="#nowhere" @click="jump('first')">«</a>
+          </li>
+          <li :class="{ disabled: !pagination.isHasPrevious }">
+            <a  href="#nowhere" @click="jump('pre')">‹</a>
+          </li>
+
+          <li  v-for="i in pagination.navigatePageNums">
+            <a href="#nowhere" v-on:click="jumpByNumber(i)" >
+              {{i}}
+            </a>
+          </li>
+
+          <li :class="{ disabled: !pagination.isHasNext }">
+            <a  href="#nowhere" @click="jump('next')">›</a>
+          </li>
+          <li :class="{ disabled: !pagination.isHasNext }">
+            <a  href="#nowhere" @click="jump('last')">»</a>
+          </li>
+        </ul>
+      </nav>
+      </template>
+
+
+    </div><!-- /.blog-main -->
+
+    <div class="col-sm-3 col-sm-offset-1 blog-sidebar">
+      <a type="button" class="btn btn-default btn-lg" :href="'newpost'">
+        <span class="glyphicon glyphicon-open"></span>New post
+      </a>
+
+      <div class="sidebar-module sidebar-module-inset">
+        <h4>About</h4>
+        <p>Etiam porta <em>sem malesuada magna</em> mollis euismod. Cras mattis consectetur purus sit amet
+          fermentum. Aenean lacinia bibendum nulla sed consectetur.</p>
+      </div>
+
+      <div class="sidebar-module">
+        <h4>Archives</h4>
+        <ol class="list-unstyled">
+          <li><a href="#">March 2014</a></li>
+          <li><a href="#">February 2014</a></li>
+          <li><a href="#">January 2014</a></li>
+          <li><a href="#">December 2013</a></li>
+          <li><a href="#">November 2013</a></li>
+          <li><a href="#">October 2013</a></li>
+          <li><a href="#">September 2013</a></li>
+          <li><a href="#">August 2013</a></li>
+          <li><a href="#">July 2013</a></li>
+          <li><a href="#">June 2013</a></li>
+          <li><a href="#">May 2013</a></li>
+          <li><a href="#">April 2013</a></li>
+        </ol>
+      </div>
+      <div class="sidebar-module">
+        <h4>Elsewhere</h4>
+        <ol class="list-unstyled">
+          <li><a href="#">GitHub</a></li>
+          <li><a href="#">Twitter</a></li>
+          <li><a href="#">Facebook</a></li>
+        </ol>
+      </div>
+    </div><!-- /.blog-sidebar -->
+
+  </div><!-- /.row -->
+
+</div>

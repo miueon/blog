@@ -20,7 +20,7 @@ constructor(
         val commentMapper: CommentMapper,
         val postMapper: PostMapper,
         val usrMapper: UserMapper,
-        val userService:UserService
+        val userService: UserService
 ) {
     fun findById(id: Long): comment? {
         return commentMapper.selectById(id)
@@ -40,13 +40,13 @@ constructor(
 
     fun fillCommentsUser(coms: List<comment>): Unit {
         coms.map {
-            it.user= usrMapper.selectById(it.uid)
+            it.user = usrMapper.selectById(it.uid)
             it.userName = it.user?.name
         }
     }
 
     fun registerComment(comm: comment, username: String): comment? {
-        val postInctx: post = findPostByCid(comm.pid  ?: throw BadRequestException("request without post id"))
+        val postInctx: post = findPostByCid(comm.pid ?: throw BadRequestException("request without post id"))
                 ?: throw BadRequestException("post doesnt exist in database")
         val usr = userService.getUserByUsername(username)
 
@@ -57,7 +57,7 @@ constructor(
                 uid = usr.id
         )
         commentMapper.insert(newComment)
-        newComment.user=usr
+        newComment.user = usr
         return newComment
     }
 

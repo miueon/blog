@@ -9,6 +9,7 @@ import com.miueon.blog.pojo.user
 import com.miueon.blog.pojo.userDto
 import com.miueon.blog.service.PostService
 import com.miueon.blog.service.impl.RedisServiceImpl
+import com.miueon.blog.util.Page4Navigator
 import org.apache.shiro.SecurityUtils
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
@@ -23,46 +24,48 @@ import javax.annotation.Resource
 class PostController {
     @Autowired
     lateinit var postService: PostService
+
     @Autowired
-    lateinit var redisService:RedisServiceImpl
+    lateinit var redisService: RedisServiceImpl
 
     private var log = LoggerFactory.getLogger(this.javaClass)
 
     class postCache
+
     @GetMapping("/posts/{id}")
     fun getPost(@PathVariable id: Long): ResponseEntity<post> {
         log.debug("REST request to get Post : {}", id)
-       // redisService.del(RedisConfig.REDIS_KEY_DATABASE +"post$id")
-        var post = redisService[RedisConfig.REDIS_KEY_DATABASE +"post$id"]
+        // redisService.del(RedisConfig.REDIS_KEY_DATABASE +"post$id")
+        var post = redisService[RedisConfig.REDIS_KEY_DATABASE + "post$id"]
 
         if (post == null) {
-            val tmp =  postService.findForId(id) ?: throw ApiException("post not exist", HttpStatus.NOT_FOUND)
+            val tmp = postService.findForId(id) ?: throw ApiException("post not exist", HttpStatus.NOT_FOUND)
             redisService[RedisConfig.REDIS_KEY_DATABASE + "post$id"] = tmp
             post = tmp
         }
         return ResponseEntity(post as post, HttpStatus.OK)
     }
 
-    data class myPage(val page: Long, val size: Long)
 
     @GetMapping("/posts")
-    fun getPostList(myPage: myPage?): ResponseEntity<List<post>> {
-        log.debug("REST request to get Posts : {}", myPage)
-       /* print("test")
-        //redisService.del(RedisConfig.REDIS_KEY_DATABASE + "posts${myPage!!.page}.${myPage.size}")
-        var posts = redisService[RedisConfig.REDIS_KEY_DATABASE + "posts${myPage!!.page}.${myPage.size}"]
-        // todo: how to solve the problem of Unconformity
-        if (posts == null) {
-            val tmp = postService.findAllByOrderByCreatedDateDescPage(Page<post>(0, 10))
-            redisService[RedisConfig.REDIS_KEY_DATABASE + "posts${myPage!!.page}.${myPage.size}"] = tmp
-            posts = tmp
-        }*/
-        val posts = postService.findAllByOrderByCreatedDateDescPage(Page<post>(0, 10))
+    fun getPostList(@RequestParam(value = "start", defaultValue = "1") start: Int,
+                    @RequestParam(value = "size", defaultValue = "5") size: Int): ResponseEntity<Page4Navigator<post>> {
 
-        return ResponseEntity(posts, HttpStatus.OK)
+        /* print("test")
+         //redisService.del(RedisConfig.REDIS_KEY_DATABASE + "posts${myPage!!.page}.${myPage.size}")
+         var posts = redisService[RedisConfig.REDIS_KEY_DATABASE + "posts${myPage!!.page}.${myPage.size}"]
+         // todo: how to solve the problem of Unconformity
+         if (posts == null) {
+             val tmp = postService.findAllByOrderByCreatedDateDescPage(Page<post>(0, 10))
+             redisService[RedisConfig.REDIS_KEY_DATABASE + "posts${myPage!!.page}.${myPage.size}"] = tmp
+             posts = tmp
+         }*/
+        val pages = postService.findAllByOrderByCreatedDateDescPage(Page<post>(start.toLong(), size.toLong()),
+                5)
+        return ResponseEntity(pages, HttpStatus.OK)
     }
 
-    data class keywordDto(val keyword:String)
+    data class keywordDto(val keyword: String)
 
     @PostMapping("/search")
     fun search(@RequestBody k: keywordDto): ResponseEntity<List<post>?> {
@@ -76,7 +79,7 @@ class PostController {
     }
 
     @PostMapping("/posts")
-    fun writePost(@RequestBody  postO: post): ResponseEntity<post> {
+    fun writePost(@RequestBody postO: post): ResponseEntity<post> {
         val userD = SecurityUtils.getSubject().principal as userDto
 
         val returnPost = postService.registerPost(postO, userD.username!!)
@@ -87,14 +90,14 @@ class PostController {
     @PutMapping("/posts/{id}")
     fun editPost(@PathVariable id: Long, @RequestBody updatePost: post): ResponseEntity<post> {
         val result = postService.updatePost(updatePost, id)
-        redisService.del(RedisConfig.REDIS_KEY_DATABASE +"post$id")
+        redisService.del(RedisConfig.REDIS_KEY_DATABASE + "post$id")
         return ResponseEntity(result, HttpStatus.OK)
     }
 
     @DeleteMapping("/posts/{id}")
     fun deletePost(@PathVariable id: Long): ResponseEntity<Unit> {
         postService.findForId(id) ?: return ResponseEntity(HttpStatus.NOT_FOUND)
-        redisService.del(RedisConfig.REDIS_KEY_DATABASE +"post$id")
+        redisService.del(RedisConfig.REDIS_KEY_DATABASE + "post$id")
         postService.deletePost(id)
         return ResponseEntity(HttpStatus.OK)
     }

@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:include="include/header::html"></head>
+<body>
+<div id="workingArea">
+  <div th:replace="include/top::html"></div>
+  <div th:replace="include/bloglistpage::html"></div>
+  <div th:replace="include/footer::html"></div>
+</div>
+<script type="application/javascript">
+
+  let bloglist = new Vue({
+    el: "#workingArea",
+    data() {
+      return {
+        uri: 'api/posts',
+        pagination: null,
+        posts: [],
+        postCondition: false,
+        md: '```python\n' +
+          'import re\n' +
+          '\n' +
+          'content = \'Hello 123 4567 World_This is a Regex Demo\'\n' +
+          'print(len(content))\n' +
+          'result = re.match(\'^Hello\\s\\d\\d\\d\\s\\d{4}\\s\\w{10}\', content)\n' +
+          'print(result)\n' +
+          'print(result.group())\n' +
+          'print(result.span())\n' +
+          '```\n' +
+          '运行结果如下：\n' +
+          '```python\n' +
+          '41\n' +
+          '<_sre.SRE_Match object; span=(0, 25), match=\'Hello 123 4567 World_This\'>\n' +
+          'Hello 123 4567 World_This\n' +
+          '(0, 25)\n' +
+          '```'
+      }
+    },
+    mounted: function () {
+      this.load(1)
+      console.log(this.posts)
+    },
+    methods: {
+      load: function (page) {
+        let url = this.uri
+        axios.get(`${url}?start=${page}&size=1`).then(function (response) {
+          console.log(response.data)
+          bloglist.posts = response.data.content
+          bloglist.pagination = response.data
+          bloglist.$set(bloglist, 'postCondition', true)
+          console.log(this.pagination)
+        });
+      },
+      formDate: function (value) {
+        if (value === null) {
+          return ""
+        }
+        let formatString = 'YYYY-MM-DD HH:mm:ss'
+        return moment(value).format(formatString)
+      },
+      bodyAbbr: function (body) {
+        if (body.length > 30) {
+          return body.substring(0, 30) +'...'
+        }
+        return body
+      },
+      jump: function (page) {
+        jump(page, bloglist)
+      },
+      jumpByNumber: function (page) {
+        jumpByNumber(page, bloglist)
+      }
+    }
+  })
+
+
+</script>
+</body>
+</html>

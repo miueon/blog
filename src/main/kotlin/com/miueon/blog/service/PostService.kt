@@ -10,6 +10,7 @@ import com.miueon.blog.pojo.post
 import com.miueon.blog.pojo.postE
 import com.miueon.blog.pojo.user
 import com.miueon.blog.pojo.userDto
+import com.miueon.blog.util.Page4Navigator
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.cache.annotation.CacheEvict
 import org.springframework.cache.annotation.CachePut
@@ -83,15 +84,17 @@ class PostService(@Autowired
     }
 
 
-    fun findAllByOrderByCreatedDateDescPage(page: Page<post>): List<post> {
+    fun findAllByOrderByCreatedDateDescPage(page: Page<post>, navigatePages:Int): Page4Navigator<post> {
         val ktQueryWrapper = KtQueryWrapper<post>(post::class.java)
         ktQueryWrapper.orderByDesc(post::createdDate)
-        val result = postMapper.selectPage(page, ktQueryWrapper).records
-        result.map {
+        val result = postMapper.selectPage(page, ktQueryWrapper)
+        result.records.map {
             it.user = userMapper.selectById(it.uid)
             it.userName = it.user?.name
+            it.user = null
         }
-        return result
+        val pages = Page4Navigator(result, navigatePages)
+        return pages
     }
 
     fun findByKeyword(keyword: String): List<post>? {

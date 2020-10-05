@@ -1,0 +1,14 @@
+<script src="https://cdn.jsdelivr.net/npm/vue@2.6.12"></script>
+<div class="container" th:fragment="html" xmlns:th="http://www.thymeleaf.org">
+  <div class="row">
+    <div class="col-sm-8 blog-main">
+      <div class="blog-post">
+        <template v-if="condition">
+          <h2 class="blog-post-title">{{post.title}}</a></h2>
+          <p class="blog-post-meta">{{formDate(post.createdDate)}} created by {{post.userName}}</p>
+          <div v-html="post.body"></div>
+        </template>
+      </div>
+    </div>
+  </div>
+</div>
