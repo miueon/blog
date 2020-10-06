@@ -3,22 +3,16 @@ package com.miueon.blog.service
 import com.baomidou.mybatisplus.extension.kotlin.KtQueryWrapper
 import com.baomidou.mybatisplus.extension.kotlin.KtUpdateWrapper
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page
-import com.miueon.blog.config.RedisConfig
 import com.miueon.blog.mapper.PostMapper
 import com.miueon.blog.mapper.UserMapper
 import com.miueon.blog.pojo.post
-import com.miueon.blog.pojo.postE
-import com.miueon.blog.pojo.user
-import com.miueon.blog.pojo.userDto
 import com.miueon.blog.util.Page4Navigator
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.cache.annotation.CacheEvict
-import org.springframework.cache.annotation.CachePut
-import org.springframework.cache.annotation.Cacheable
 import org.springframework.stereotype.Service
-import org.springframework.transaction.annotation.Transactional
-import java.util.stream.Collector
-import java.util.stream.Collectors
+import java.io.BufferedReader
+import java.io.File
+import java.io.InputStreamReader
+import java.nio.charset.StandardCharsets
 
 @Service
 class PostService(@Autowired
@@ -26,17 +20,44 @@ class PostService(@Autowired
                   @Autowired
                   var userMapper: UserMapper,
                   @Autowired
+                  var userService: UserService,
+                  @Autowired
                   var commentService: CommentService,
                   @Autowired
                   var postEService: PostEService
 ) {
 
+    private  var downloadMdPath :String = "E:/0.PROJECT/fullstack/Blog/src/main/resources/static/md"
 
     fun findForId(id: Long): post? {
         val result = postMapper.selectById(id)
+        // read from {id}.md file. may be replace it by store md file into database?
+        result.body = readBodyFromMdFile(result.id!!)
         result.user = userMapper.selectById(result?.uid)
+        result.user?.password = null
         result.userName = result.user?.name
         return result
+    }
+    private fun readBodyFromMdFile(id: Long): String {
+        val file = File("$downloadMdPath${File.separator}${id}.md")
+
+        val reader = BufferedReader(InputStreamReader(file.inputStream(),
+                StandardCharsets.UTF_8))
+        val buffer = StringBuffer()
+        try {
+            var line = reader.readLine()
+            while (line != null) {
+                buffer.append(line)
+                buffer.append("\n")
+                line = reader.readLine()
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        } finally {
+            reader.close()
+        }
+
+        return buffer.toString()
     }
 
 
@@ -45,42 +66,32 @@ class PostService(@Autowired
         return result.records
     }
 
-
-
-    fun registerPost(p: post, username: String): post {
-        var newPost = post()
-        newPost.title = p.title
-        newPost.body = p.body
-        val ktQueryWrapper = KtQueryWrapper(user::class.java)
-        ktQueryWrapper.eq(user::name, username)
-        val usr = userMapper.selectOne(ktQueryWrapper)
-        newPost.userName = usr.name
-        newPost.user = usr
-        newPost.uid = usr.id
-        postMapper.insert(newPost)
-        // register to ES
-        val pes = postE()
-        pes.id = newPost.id.toString()
-        pes.title = newPost.title
-        pes.content = newPost.body
-        postEService.registerPostE(pes)
-
-        return newPost
+    fun addPost(title: String): Long {
+        val post = post()
+        post.title = title
+        val user = userService.getRawUser("crux")
+        // todo: add a exception
+        post.uid = user?.id
+        post.body = "null"
+        postMapper.insert(post)
+        return post.id!!
     }
 
-    fun updatePost(p: post, pid: Long): post {
+
+    fun updatePost(p: post, pid: Long): Int {
         val originalPost = findForId(pid)
+        originalPost?.body = "null"
         val ktUpdateWrapper = KtUpdateWrapper(post::class.java)
-        ktUpdateWrapper.set(post::body, p.body).set(post::title, p.title).eq(post::id, pid)
+        ktUpdateWrapper.set(post::title, p.title).eq(post::id, pid)
         val result = postMapper.update(originalPost, ktUpdateWrapper)
         // update to ES
-        val postes = postE()
-        postes.title = p.title
-        postes.content = p.body
-        postes.id = pid.toString()
-        postEService.updatePostE(postes)
+//        val postes = postE()
+//        postes.title = p.title
+//        postes.content = p.body
+//        postes.id = pid.toString()
+//        postEService.updatePostE(postes)
 
-        return findForId(result.toLong())!!
+        return result
     }
 
 
@@ -92,6 +103,10 @@ class PostService(@Autowired
             it.user = userMapper.selectById(it.uid)
             it.userName = it.user?.name
             it.user = null
+            if (it.body == "null") {
+                it.body = readBodyFromMdFile(it.id!!)
+
+            }
         }
         val pages = Page4Navigator(result, navigatePages)
         return pages
@@ -126,6 +141,6 @@ class PostService(@Autowired
         commentService.deleteCommentByPostId(id)
         postMapper.deleteById(id)
         // delete in ES
-        postEService.deletePostE(id.toString())
+       // postEService.deletePostE(id.toString())
     }
 }

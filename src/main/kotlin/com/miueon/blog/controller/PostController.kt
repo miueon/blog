@@ -1,23 +1,24 @@
 package com.miueon.blog.controller
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page
-import com.fasterxml.jackson.annotation.JsonProperty
 import com.miueon.blog.config.RedisConfig
 import com.miueon.blog.exceptions.ApiException
 import com.miueon.blog.pojo.post
-import com.miueon.blog.pojo.user
-import com.miueon.blog.pojo.userDto
 import com.miueon.blog.service.PostService
 import com.miueon.blog.service.impl.RedisServiceImpl
 import com.miueon.blog.util.Page4Navigator
-import org.apache.shiro.SecurityUtils
+import com.miueon.blog.util.UploadUtils
+
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
-import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.bind.annotation.*
-import javax.annotation.Resource
+import org.springframework.web.multipart.MultipartFile
+import java.io.File
+import java.io.IOException
+import java.net.ConnectException
+import javax.servlet.http.HttpServletRequest
 
 @RestController
 @RequestMapping("/api")
@@ -60,8 +61,10 @@ class PostController {
              redisService[RedisConfig.REDIS_KEY_DATABASE + "posts${myPage!!.page}.${myPage.size}"] = tmp
              posts = tmp
          }*/
+
         val pages = postService.findAllByOrderByCreatedDateDescPage(Page<post>(start.toLong(), size.toLong()),
                 5)
+
         return ResponseEntity(pages, HttpStatus.OK)
     }
 
@@ -79,25 +82,46 @@ class PostController {
     }
 
     @PostMapping("/posts")
-    fun writePost(@RequestBody postO: post): ResponseEntity<post> {
-        val userD = SecurityUtils.getSubject().principal as userDto
+    fun writePost(title:String, md:MultipartFile, request:HttpServletRequest): ResponseEntity<Any?> {
+        val id = postService.addPost(title)
+        saveMdFile(id, md)
+        return ResponseEntity.status(HttpStatus.OK).build()
+    }
 
-        val returnPost = postService.registerPost(postO, userD.username!!)
-        return ResponseEntity(returnPost, HttpStatus.CREATED)
+    private fun saveMdFile(id: Long, mdFile: MultipartFile) {
+        val mdFolder = UploadUtils.getMdDirFile()
+
+        try {
+            val file = File("${mdFolder.absolutePath}${File.separator}${id}.md")
+            mdFile.transferTo(file)
+
+        } catch (e: IOException) {
+            e.printStackTrace()
+        }
+
     }
 
 
+
+
     @PutMapping("/posts/{id}")
-    fun editPost(@PathVariable id: Long, @RequestBody updatePost: post): ResponseEntity<post> {
-        val result = postService.updatePost(updatePost, id)
+    fun editPost(@PathVariable id: Long, title:String, md:MultipartFile): ResponseEntity<Unit> {
+        saveMdFile(id, md)
+        val post = post()
+        post.title = title
+        postService.updatePost(post, id)
         redisService.del(RedisConfig.REDIS_KEY_DATABASE + "post$id")
-        return ResponseEntity(result, HttpStatus.OK)
+        return ResponseEntity(HttpStatus.OK)
     }
 
     @DeleteMapping("/posts/{id}")
     fun deletePost(@PathVariable id: Long): ResponseEntity<Unit> {
         postService.findForId(id) ?: return ResponseEntity(HttpStatus.NOT_FOUND)
-        redisService.del(RedisConfig.REDIS_KEY_DATABASE + "post$id")
+        try {
+            redisService.del(RedisConfig.REDIS_KEY_DATABASE + "post$id")
+        } catch (e: ConnectException) {
+            e.printStackTrace()
+        }
         postService.deletePost(id)
         return ResponseEntity(HttpStatus.OK)
     }

@@ -46,11 +46,7 @@
             <version>${jwt.auth0.version}</version>
         </dependency>
         <!-- shiro -->
-        <dependency>
-            <groupId>org.apache.shiro</groupId>
-            <artifactId>shiro-spring-boot-web-starter</artifactId>
-            <version>${shiro.spring.version}</version>
-        </dependency>
+
         <!-- hsqldb -->
         <!-- https://mvnrepository.com/artifact/com.alibaba/fastjson -->
         <dependency>

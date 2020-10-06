@@ -7,37 +7,6 @@
   <div th:replace="include/detail/detailpage::html"></div>
   <div th:replace="include/footer::html"></div>
 </div>
-<script>
-  let pid = getUrlParms("pid")
-  let detail = new Vue({
-    el: "#workingArea",
-    data() {
-      return {
-        uri: 'api/posts/',
-        post: null,
-        condition: false
-      }
-    },
-    mounted: function() {
-      this.load()
-    },
-    methods: {
-      load: function () {
-        let url = this.uri + pid
-        axios.get(url).then(function (response) {
-          detail.post = response.data
-          detail.$set(detail, 'condition', true)
-        });
-      },
-      formDate: function (value) {
-        if (value === null) {
-          return ""
-        }
-        let formatString = 'YYYY-MM-DD HH:mm:ss'
-        return moment(value).format(formatString)
-      }
-    }
-  })
-</script>
+
 </body>
 </html>

@@ -6,9 +6,56 @@
         <template v-if="condition">
           <h2 class="blog-post-title">{{post.title}}</a></h2>
           <p class="blog-post-meta">{{formDate(post.createdDate)}} created by {{post.userName}}</p>
-          <div v-html="post.body"></div>
+          <div v-html="marked(post.body)"></div>
         </template>
       </div>
     </div>
+    <div class="col-sm-3 col-sm-offset-1 blog-sidebar">
+      <a type="button" class="btn btn-default btn-lg" @click="delPost" >
+        <span class="glyphicon glyphicon-remove"></span>Delete post
+      </a>
+      <a type="button" class="btn btn-default btn-lg" :href="'newpost?pid='+pid">
+        <span class="glyphicon glyphicon-check"></span>Update post
+      </a>
+    </div>
   </div>
+  <script>
+    let pid = getUrlParms("pid")
+    let detail = new Vue({
+      el: "#workingArea",
+      data() {
+        return {
+          pid: pid,
+          uri: 'api/posts/',
+          post: null,
+          condition: false
+        }
+      },
+      mounted: function() {
+        this.load()
+      },
+      methods: {
+        load: function () {
+          let url = this.uri + pid
+          axios.get(url).then(function (response) {
+            detail.post = response.data
+            detail.$set(detail, 'condition', true)
+          });
+        },
+        formDate: function (value) {
+          if (value === null) {
+            return ""
+          }
+          let formatString = 'YYYY-MM-DD HH:mm:ss'
+          return moment(value).format(formatString)
+        },
+        delPost: function () {
+          let url = this.uri + pid
+          axios.delete(url).then(function (response) {
+            window.location.href = "/"
+          })
+        }
+      }
+    })
+  </script>
 </div>

@@ -43,12 +43,13 @@
     methods: {
       load: function (page) {
         let url = this.uri
-        axios.get(`${url}?start=${page}&size=1`).then(function (response) {
+        axios.get(`${url}?start=${page}&size=5`).then(function (response) {
           console.log(response.data)
           bloglist.posts = response.data.content
           bloglist.pagination = response.data
           bloglist.$set(bloglist, 'postCondition', true)
           console.log(this.pagination)
+
         });
       },
       formDate: function (value) {
@@ -59,8 +60,9 @@
         return moment(value).format(formatString)
       },
       bodyAbbr: function (body) {
-        if (body.length > 30) {
-          return body.substring(0, 30) +'...'
+        let cutLength = 300
+        if (body.length > cutLength) {
+          return body.substring(0, cutLength) +'...'
         }
         return body
       },

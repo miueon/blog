@@ -13,7 +13,7 @@
         <div v-for="ps in posts">
           <h2 class="blog-post-title"><a :href="'detail?pid=' + ps.id">{{ps.title}}</a></h2>
           <p class="blog-post-meta">{{formDate(ps.createdDate)}} created by {{ps.userName}}</p>
-          <div v-html="bodyAbbr(ps.body)"></div>
+          <div v-html="bodyAbbr(marked(ps.body))"></div>
         </div>
 
       </div>

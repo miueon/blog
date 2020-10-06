@@ -3,7 +3,7 @@ package com.miueon.blog.controller
 import com.miueon.blog.pojo.comment
 import com.miueon.blog.pojo.userDto
 import com.miueon.blog.service.CommentService
-import org.apache.shiro.SecurityUtils
+
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
@@ -25,13 +25,13 @@ constructor(val commentService: CommentService){
         return ResponseEntity(comments, HttpStatus.OK)
     }
 
-    @PostMapping("/comments/posts/{pid}")
-    fun registerComment(@PathVariable pid: Long, @RequestBody comm: comment): ResponseEntity<comment> {
-        comm.pid = pid
-        val userD = SecurityUtils.getSubject().principal as userDto
-        val retComment = commentService.registerComment(comm, userD.username!!)
-        return ResponseEntity(retComment, HttpStatus.OK)
-    }
+//    @PostMapping("/comments/posts/{pid}")
+//    fun registerComment(@PathVariable pid: Long, @RequestBody comm: comment): ResponseEntity<comment> {
+//        comm.pid = pid
+//        val userD = SecurityUtils.getSubject().principal as userDto
+//        val retComment = commentService.registerComment(comm, userD.username!!)
+//        return ResponseEntity(retComment, HttpStatus.OK)
+//    }
 
 
 }
