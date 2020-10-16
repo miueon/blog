@@ -27,7 +27,7 @@ class PostService(@Autowired
                   var postEService: PostEService
 ) {
 
-    private  var downloadMdPath :String = "E:/0.PROJECT/fullstack/Blog/src/main/resources/static/md"
+    var downloadMdPath :String = "E:/0.PROJECT/fullstack/Blog/src/main/resources/static/md"
 
     fun findForId(id: Long): post? {
         val result = postMapper.selectById(id)

@@ -19,38 +19,40 @@
       </div>
 
       <template v-if="postCondition">
-      <nav>
-        <ul class="pagination">
-          <li :class="{disabled: !pagination.isHasPrevious}">
-            <a  href="#nowhere" @click="jump('first')">«</a>
-          </li>
-          <li :class="{ disabled: !pagination.isHasPrevious }">
-            <a  href="#nowhere" @click="jump('pre')">‹</a>
-          </li>
+        <nav>
+          <ul class="pagination">
+            <li :class="{disabled: !pagination.isHasPrevious}">
+              <a href="#nowhere" @click="jump('first')">«</a>
+            </li>
+            <li :class="{ disabled: !pagination.isHasPrevious }">
+              <a href="#nowhere" @click="jump('pre')">‹</a>
+            </li>
 
-          <li  v-for="i in pagination.navigatePageNums">
-            <a href="#nowhere" v-on:click="jumpByNumber(i)" >
-              {{i}}
-            </a>
-          </li>
+            <li v-for="i in pagination.navigatePageNums">
+              <a href="#nowhere" v-on:click="jumpByNumber(i)">
+                {{i}}
+              </a>
+            </li>
 
-          <li :class="{ disabled: !pagination.isHasNext }">
-            <a  href="#nowhere" @click="jump('next')">›</a>
-          </li>
-          <li :class="{ disabled: !pagination.isHasNext }">
-            <a  href="#nowhere" @click="jump('last')">»</a>
-          </li>
-        </ul>
-      </nav>
+            <li :class="{ disabled: !pagination.isHasNext }">
+              <a href="#nowhere" @click="jump('next')">›</a>
+            </li>
+            <li :class="{ disabled: !pagination.isHasNext }">
+              <a href="#nowhere" @click="jump('last')">»</a>
+            </li>
+          </ul>
+        </nav>
       </template>
 
 
     </div><!-- /.blog-main -->
 
     <div class="col-sm-3 col-sm-offset-1 blog-sidebar">
-      <a type="button" class="btn btn-default btn-lg" :href="'newpost'">
-        <span class="glyphicon glyphicon-open"></span>New post
-      </a>
+      <div class="sidebar-module">
+        <a type="button" class="btn btn-default btn-lg" :href="'newpost'">
+          <span class="glyphicon glyphicon-open"></span>New post
+        </a>
+      </div>
 
       <div class="sidebar-module sidebar-module-inset">
         <h4>About</h4>

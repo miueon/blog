@@ -15,10 +15,10 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.multipart.MultipartFile
-import java.io.File
-import java.io.IOException
+import java.io.*
 import java.net.ConnectException
 import javax.servlet.http.HttpServletRequest
+import javax.servlet.http.HttpServletResponse
 
 @RestController
 @RequestMapping("/api")
@@ -101,6 +101,37 @@ class PostController {
 
     }
 
+    @GetMapping("/posts/download")
+    fun downloadMdFile(@RequestParam("pid") pid: Long, response:HttpServletResponse):String {
+        val file = File("${postService.downloadMdPath}${File.separator}${pid}.md")
+        if (!file.exists()) {
+           return "download file not exits"
+        }
+        val post = postService.findForId(pid)
+                ?: return "request of $pid isn't in database"
+        response.reset()
+        response.contentType = "application/octet-stream"
+        response.characterEncoding = "utf-8"
+        response.setContentLength(file.length().toInt())
+        response.setHeader("Content-Disposition", "attachment;filename=${post.title}.md")
+        try {
+            BufferedInputStream(FileInputStream(file)).use {
+                val buff = ByteArray(1024)
+                val os = response.outputStream
+                var i = 0
+                i = it.read(buff)
+                while (i != -1) {
+                    os.write(buff, 0, i)
+                    os.flush()
+                    i = it.read(buff)
+                }
+            }
+        } catch (e: IOException) {
+            log.error("{}", e)
+            return "download failed"
+        }
+        return "download success"
+    }
 
 
 

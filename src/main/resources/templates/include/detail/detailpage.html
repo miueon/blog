@@ -11,12 +11,21 @@
       </div>
     </div>
     <div class="col-sm-3 col-sm-offset-1 blog-sidebar">
-      <a type="button" class="btn btn-default btn-lg" @click="delPost" >
-        <span class="glyphicon glyphicon-remove"></span>Delete post
-      </a>
-      <a type="button" class="btn btn-default btn-lg" :href="'newpost?pid='+pid">
-        <span class="glyphicon glyphicon-check"></span>Update post
-      </a>
+      <div class="sidebar-module">
+        <a type="button" class="btn btn-default btn-lg" @click="delPost">
+          <span class="glyphicon glyphicon-remove"></span>Delete post
+        </a>
+      </div>
+      <div class="sidebar-module">
+        <a type="button" class="btn btn-default btn-lg" :href="'newpost?pid='+pid">
+          <span class="glyphicon glyphicon-check"></span>Update post
+        </a>
+      </div>
+      <div class="sidebar-module">
+        <a type="button" class="btn btn-default btn-lg" @click="downloadPost">
+          <span class="glyphicon glyphicon-download-alt"></span>download post mdFile
+        </a>
+      </div>
     </div>
   </div>
   <script>
@@ -31,7 +40,7 @@
           condition: false
         }
       },
-      mounted: function() {
+      mounted: function () {
         this.load()
       },
       methods: {
@@ -52,8 +61,58 @@
         delPost: function () {
           let url = this.uri + pid
           axios.delete(url).then(function (response) {
+            // redirect to homePage
             window.location.href = "/"
           })
+        },
+        downloadPost: function () {
+          let url = this.uri + `download?pid=${pid}`
+          const queryArgs = {
+            url,
+            method: "get",
+            headers: {
+              Accept: 'application/json',
+              'Content-Type': 'application/json; charset=utf-8',
+              withCredentials: true
+            },
+          }
+          axios.request(queryArgs).then(
+            response => {
+              // 提取文件名 得小写 content-disposition
+              const filename = response.headers['content-disposition'].match(
+                /filename=(.*)/
+              )[1]
+              if (typeof filename === "undefined") {
+                alert(response.data)
+                return
+              }
+              // 将二进制流转为blob
+              const blob = new Blob([response.data], {type: 'application/octet-stream'});
+              if (typeof window.navigator.msSaveBlob !== 'undefined') {
+                // 兼容IE，window.navigator.msSaveBlob：以本地方式保存文件
+                window.navigator.msSaveBlob(blob, decodeURI(filename))
+              } else {
+                // magic part
+                // 创建新的URL并指向File对象或者Blob对象的地址
+                const blobURL = window.URL.createObjectURL(blob)
+                // 创建a标签，用于跳转至下载链接
+                const tempLink = document.createElement('a')
+                tempLink.style.display = 'none'
+                tempLink.href = blobURL
+                tempLink.setAttribute('download', decodeURI(filename))
+                // 兼容：某些浏览器不支持HTML5的download属性
+                if (typeof tempLink.download === 'undefined') {
+                  tempLink.setAttribute('target', '_blank')
+                }
+                // 挂载a标签
+                document.body.appendChild(tempLink)
+                tempLink.click()
+                document.body.removeChild(tempLink)
+                // 释放blob URL地址
+                window.URL.revokeObjectURL(blobURL)
+              }
+            }
+          ).catch(err => console.log(err))
         }
       }
     })
