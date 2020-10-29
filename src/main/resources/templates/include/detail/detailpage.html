@@ -37,11 +37,32 @@
           pid: pid,
           uri: 'api/posts/',
           post: null,
-          condition: false
+          condition: false,
+
+          isAuthenticated: false,
+          user: {
+            name: '',
+            password: '',
+            repeatpassword: '',
+            isAdmin: false
+          },
+          rememberMe: false
         }
       },
       mounted: function () {
+
+        marked.setOptions({
+          highlight: function (code, lang) {
+
+            let result = hljs.highlight(lang, code).value
+            hljs.initLineNumbersOnLoad();
+            result = hljs.lineNumbersValue(result)
+            return result
+          }
+        })
         this.load()
+
+
       },
       methods: {
         load: function () {
@@ -113,7 +134,72 @@
               }
             }
           ).catch(err => console.log(err))
+        },
+
+        /////////////////////////
+        get_user: function () {
+          axios({
+            method: 'get',
+            url: authUri,
+            headers: {
+              Authorization: getToken()
+            }
+          }).then(response => {
+            if (response.status === 401) {
+              this.isAuthenticated = false
+              return
+            }
+            this.isAuthenticated = true
+            this.user.isAdmin = response.data.isAdmin
+            this.user.name = response.data.name
+          }).catch(error => {
+            this.isAuthenticated = false
+          })
+        },
+        login_modal: function () {
+          console.log('modal clicked')
+          $('#loginModal').modal('show')
+        },
+        register_modal: function () {
+          $('#registerModal').modal('show')
+        },
+        register: function () {
+
+        },
+        login: function () {
+          axios.post('/login', {
+            username: this.user.name,
+            password: this.user.password
+          }).then(response => {
+            if (this.rememberMe) {
+              console.log('rememberMe')
+              localStorage.setItem("__AUTH__", response.headers.authorization)
+            } else {
+              sessionStorage.setItem("__AUTH__", response.headers.authorization)
+            }
+            this.isAuthenticated = true;
+            this.user.password = ""
+            $('#loginModal').modal('hide')
+            this.user.isAdmin = response.data.isAdmin
+          }).then(this.getuser)
+            .catch(error => {
+              this.isAuthenticated = false
+              $("span.loginErrorMessage").html("Login failed.")
+              $("div.loginErrorMessageDiv").css("visibility", "visible")
+            })
+        },
+        logout: function () {
+          console.log("logout")
+          axios.get("/logout").then(response => {
+              this.isAuthenticated = false
+              localStorage.removeItem("__AUTH__")
+              sessionStorage.removeItem("__AUTH__")
+              this.user.isAdmin = false
+              this.user.name = ""
+            }
+          )
         }
+
       }
     })
   </script>

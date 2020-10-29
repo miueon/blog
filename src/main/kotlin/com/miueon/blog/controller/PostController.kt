@@ -94,7 +94,7 @@ class PostController {
         try {
             val file = File("${mdFolder.absolutePath}${File.separator}${id}.md")
             mdFile.transferTo(file)
-
+            // todo: after save as md file, read it, and store it in database
         } catch (e: IOException) {
             e.printStackTrace()
         }

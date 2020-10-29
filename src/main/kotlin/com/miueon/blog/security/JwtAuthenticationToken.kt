@@ -1,25 +1,28 @@
-package com.miueon.blog.pojo
+package com.miueon.blog.security
 
 import com.auth0.jwt.interfaces.DecodedJWT
 import org.springframework.security.authentication.AbstractAuthenticationToken
 import org.springframework.security.core.GrantedAuthority
 import org.springframework.security.core.userdetails.UserDetails
-import java.util.*
 
 class JwtAuthenticationToken:AbstractAuthenticationToken {
     companion object{
-        private val serialVersionUID:Long = 3981518947978158945L
+        const val serialVersionUID = 3981518947978158945L
     }
+    private  var principal:UserDetails? = null
+    private  var credentials:String? = null
+    val token:DecodedJWT
 
-    private var principal: UserDetails? = null
-    private val credentials: String? = null
-    private var token: DecodedJWT? = null
 
-    constructor(token: DecodedJWT):super(Collections.emptyList()){
+
+    constructor(token: DecodedJWT):super(emptyList()){
         this.token = token
     }
-
-    constructor(principal: UserDetails, token: DecodedJWT, authorities: Collection<out GrantedAuthority>)
+    constructor(principal: UserDetails, token: DecodedJWT,
+                authorities: Collection<GrantedAuthority>):super(authorities){
+        this.principal = principal
+        this.token = token
+    }
 
 
     override fun setDetails(details: Any?) {
@@ -35,8 +38,5 @@ class JwtAuthenticationToken:AbstractAuthenticationToken {
         return principal
     }
 
-    fun getToken():DecodedJWT? {
-        return token
-    }
 
 }

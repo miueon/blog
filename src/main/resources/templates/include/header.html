@@ -5,13 +5,59 @@
   <script src="js/jquery/2.0.0/jquery.min.js"></script>
   <link href="css/bootstrap/3.3.6/bootstrap.min.css" rel="stylesheet">
   <link href="css/blog.css" rel="stylesheet">
+  <link href="css/signin.css" rel="stylesheet">
+  <link href="css/fore/style.css" rel="stylesheet">
+
+  <link rel="stylesheet"
+        href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.2/styles/default.min.css">
+
   <script src="js/bootstrap/3.3.6/bootstrap.min.js"></script>
   <script src="js/marked/marked.min.js"></script>
   <script src="js/vue/2.5.16/vue.min.js"></script>
   <script src="js/axios/0.17.1/axios.min.js"></script>
   <script src="js/moment/2.22.2/moment.js"></script>
 
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.2/highlight.min.js"></script>
+
+  <script src="https://cdn.bootcss.com/highlightjs-line-numbers.js/2.7.0/highlightjs-line-numbers.min.js"></script>
+
+  <style>
+      .codehilite {
+          padding: 0;
+      }
+
+      /* for block of numbers */
+      .hljs-ln-numbers {
+          -webkit-touch-callout: none;
+          -webkit-user-select: none;
+          -khtml-user-select: none;
+          -moz-user-select: none;
+          -ms-user-select: none;
+          user-select: none;
+
+          text-align: center;
+          color: #ccc;
+          border-right: 1px solid #CCC;
+          vertical-align: top;
+          padding-right: 5px;
+      }
+
+      .hljs-ln-n {
+          width: 30px;
+      }
+
+      /* for block of code */
+      .hljs-ln .hljs-ln-code {
+          padding-left: 10px;
+          white-space: pre;
+      }
+  </style>
+
   <script>
+    const authUri = 'auth/user'
+
+
+
     function getUrlParms(para) {
       let search = location.search; //页面URL的查询部分字符串
       let arrPara = []; //参数数组。数组单项为包含参数名和参数值的字符串，如“para=value”
@@ -66,6 +112,15 @@
         vue.load(page)
       }
     }
+
+    function getToken() {
+      let token = sessionStorage.getItem('__AUTH__')
+      if (token === null) {
+        token = localStorage.getItem('__AUTH__')
+      }
+      return `Bearer ${token}`;
+    }
+
 
   </script>
 

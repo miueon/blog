@@ -1,7 +1,7 @@
 <script src="https://cdn.jsdelivr.net/npm/vue@2.6.12"></script>
 <div class="container" th:fragment="html" xmlns:th="http://www.thymeleaf.org">
 
-  <div class="panel panel-success addDiv">
+  <div v-if="isAuthenticated" class="panel panel-success addDiv">
     <div class="panel-heading">New post</div>
     <div class="panel-body">
       <table class="addTable">
@@ -10,7 +10,7 @@
           <td>
             <label>
               <input v-on:keyup.enter="add"
-                     v-model:trim="title" type="text" class="form-control" >
+                     v-model:trim="title" type="text" class="form-control">
             </label>
           </td>
         </tr>
@@ -22,65 +22,155 @@
         </tr>
         <tr class="submitTR">
           <td colspan="2">
-            <a href="#nowhere" @click="add" class="btn btn-success">Submit</a>
+            <a href="#nowhere" @click="add" class="btn btn-success" >Submit</a>
           </td>
         </tr>
       </table>
     </div>
   </div>
   <script>
-    let pid = getUrlParms("pid")
-    let newpost = new Vue({
-      el: "#workingArea",
-      data() {
-        return {
-          uri: "api/posts",
-          title: "",
-          mdFile: null,
-        }
-      },
-      methods: {
-        add: function () {
-          if (!checkEmpty(this.title, "post title ")) {
-            return
+    $(function () {
+      let pid = getUrlParms("pid")
+      let newpost = new Vue({
+        el: "#workingArea",
+        data() {
+          return {
+            uri: "api/posts",
+            title: "",
+            mdFile: null,
+
+            isAuthenticated: false,
+            user: {
+              name: '',
+              password: '',
+              repeatpassword: '',
+              isAdmin: false
+            },
+            rememberMe: false
           }
-          if (!checkEmpty(this.mdFile, "md File ")) {
-            return
-          }
-          let url = "api/posts"
-          let formData = new FormData()
-          formData.append("title", this.title)
-          formData.append("md", this.mdFile)
-          if (pid !== null) {
-            url = `${url}/${pid}`
-            axios.put(url, formData).then(
-              response => {
-                newpost.mdFile = null
-                newpost.title = ""
-              }
-            )
-          } else {
-            axios.post(url, formData)
-              .then(response => {
+        },
+        methods: {
+          add: function () {
+            if (!checkEmpty(this.title, "post title ")) {
+              return
+            }
+            if (!checkEmpty(this.mdFile, "md File ")) {
+              return
+            }
+            let url = "api/posts"
+            let formData = new FormData()
+            formData.append("title", this.title)
+            formData.append("md", this.mdFile)
+            if (pid !== null) {
+              let url_p = `${url}/${pid}`
+              axios({
+                method: 'put',
+                url: url_p,
+                data: formData,
+                headers: {
+                  Authorization: getToken()
+                }
+              }).then(
+                response => {
+                  newpost.mdFile = null
+                  newpost.title = ""
+                }
+              )
+            } else {
+              axios({
+                method: 'post',
+                url: url,
+                data: formData,
+                headers: {
+                  Authorization: getToken()
+                }
+              }).then(response => {
                 newpost.mdFile = null
                 newpost.title = ""
               });
-          }
+            }
+          },
+          getFile: function (event) {
+            this.mdFile = event.target.files[0]
+          },
 
+          // for top
+          get_user: function () {
+            axios({
+              method: 'get',
+              url: authUri,
+              headers: {
+                Authorization: getToken()
+              }
+            }).then(response => {
+              if (response.status === 401) {
+                this.isAuthenticated = false
+                return
+              }
+              this.isAuthenticated = true
+              this.user.isAdmin = response.data.isAdmin
+              this.user.name = response.data.name
+            }).catch(error => {
+              this.isAuthenticated = false
+            })
+          },
+          login_modal: function () {
+            console.log('modal clicked')
+            $('#loginModal').modal('show')
+          },
+          register_modal: function () {
+            $('#registerModal').modal('show')
+          },
+          register: function () {
+
+          },
+          login: function () {
+            axios.post('/login', {
+              username: this.user.name,
+              password: this.user.password
+            }).then(response => {
+              if (this.rememberMe) {
+                console.log('rememberMe')
+                localStorage.setItem("__AUTH__", response.headers.authorization)
+              } else {
+                sessionStorage.setItem("__AUTH__", response.headers.authorization)
+              }
+              this.isAuthenticated = true;
+              this.user.password = ""
+              $('#loginModal').modal('hide')
+              this.user.isAdmin = response.data.isAdmin
+            }).then(this.getuser)
+              .catch(error => {
+                this.isAuthenticated = false
+                $("span.loginErrorMessage").html("Login failed.")
+                $("div.loginErrorMessageDiv").css("visibility", "visible")
+              })
+          },
+          logout: function () {
+            console.log("logout")
+            axios.get("/logout").then(response => {
+                this.isAuthenticated = false
+                localStorage.removeItem("__AUTH__")
+                sessionStorage.removeItem("__AUTH__")
+                this.user.isAdmin = false
+                this.user.name = ""
+              }
+            )
+          }
         },
-        getFile: function (event) {
-          this.mdFile = event.target.files[0]
+
+        mounted: function () {
+          if (pid !== null) {
+            let url = `${this.uri}/${pid}`
+            axios.get(url).then(response => {
+              console.log(response.data.title)
+              newpost.title = response.data.title
+            })
+          }
+          this.get_user()
         }
-      },
-      mounted: function () {
-        if (pid !== null) {
-          let url = `${this.uri}/${pid}`
-          axios.get(url).then(response => {
-            console.log(response.data.title)
-            newpost.title = response.data.title
-          })
-        }
-      }
+      })
     })
+
   </script>
 </div>

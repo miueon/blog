@@ -10,12 +10,12 @@ body {
 }
 
 a {
-	color: #999;
+	color: dimgray;
 }
 
 a:hover {
 	text-decoration: none;
-	color: #C40000;
+	color: lightskyblue;
 }
 
 nav.top {
@@ -444,6 +444,13 @@ div.loginDivInProductPage {
 	background-color: white;
 	width: 350px;
 	height: 400px;
+	padding: 60px 25px 80px 25px;
+}
+
+div.registerDivInPage {
+	background-color: white;
+	width: 450px;
+	height: 500px;
 	padding: 60px 25px 80px 25px;
 }
 
@@ -2138,8 +2145,6 @@ div.registerDiv {
 table.registerTable {
 	color: #3C3C3C;
 	font-size: 16px;
-	table-layout: fixed;
-	margin-top: 50px;
 }
 
 table.registerTable td {
@@ -2162,7 +2167,6 @@ td.registerTip {
 }
 
 table.registerTable input {
-	border: 1px solid #DEDEDE;
 	width: 213px;
 	height: 36px;
 	font-size: 14px;
@@ -2175,9 +2179,9 @@ td.registerButtonTD {
 table.registerTable button {
 	width: 170px;
 	height: 36px;
-	border-radius: 2px;
+	border-radius: 5px;
 	color: white;
-	background-color: #C40000;
+	background-color: red;
 	border-width: 0px;
 }
 
