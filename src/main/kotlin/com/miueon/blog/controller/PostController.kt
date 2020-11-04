@@ -37,13 +37,15 @@ class PostController {
     fun getPost(@PathVariable id: Long): ResponseEntity<post> {
         log.debug("REST request to get Post : {}", id)
         // redisService.del(RedisConfig.REDIS_KEY_DATABASE +"post$id")
-        var post = redisService[RedisConfig.REDIS_KEY_DATABASE + "post$id"]
-
-        if (post == null) {
-            val tmp = postService.findForId(id) ?: throw ApiException("post not exist", HttpStatus.NOT_FOUND)
-            redisService[RedisConfig.REDIS_KEY_DATABASE + "post$id"] = tmp
-            post = tmp
-        }
+//        var post = redisService[RedisConfig.REDIS_KEY_DATABASE + "post$id"]
+//        // todo
+//
+//        if (post == null) {
+//            val tmp = postService.findForId(id) ?: throw ApiException("post not exist", HttpStatus.NOT_FOUND)
+//           // redisService[RedisConfig.REDIS_KEY_DATABASE + "post$id"] = tmp
+//            post = tmp
+//        }
+        var post = postService.findForId(id) ?: throw ApiException("post not exist", HttpStatus.NOT_FOUND)
         return ResponseEntity(post as post, HttpStatus.OK)
     }
 
@@ -82,30 +84,31 @@ class PostController {
     }
 
     @PostMapping("/posts")
-    fun writePost(title:String, md:MultipartFile, request:HttpServletRequest): ResponseEntity<Any?> {
-        val id = postService.addPost(title)
-        saveMdFile(id, md)
+    fun writePost(title: String, md: MultipartFile, request: HttpServletRequest): ResponseEntity<Any?> {
+        val preSavePost = postService.addPost(title)
+        preSavePost.body = saveMdFile(preSavePost.id!!, md) ?: throw ApiException("Save md file failed")
+        postService.saveBody(preSavePost)
         return ResponseEntity.status(HttpStatus.OK).build()
     }
 
-    private fun saveMdFile(id: Long, mdFile: MultipartFile) {
-        val mdFolder = UploadUtils.getMdDirFile()
-
+    private fun saveMdFile(id: Long, mdFile: MultipartFile): String? {
+        var body: String? = null
         try {
-            val file = File("${mdFolder.absolutePath}${File.separator}${id}.md")
+            val file = File("${postService.downloadMdPath}${File.separator}${id}.md")
             mdFile.transferTo(file)
+            body = postService.readBodyFromMdFile(id)
             // todo: after save as md file, read it, and store it in database
         } catch (e: IOException) {
             e.printStackTrace()
         }
-
+        return body
     }
 
     @GetMapping("/posts/download")
-    fun downloadMdFile(@RequestParam("pid") pid: Long, response:HttpServletResponse):String {
+    fun downloadMdFile(@RequestParam("pid") pid: Long, response: HttpServletResponse): String {
         val file = File("${postService.downloadMdPath}${File.separator}${pid}.md")
         if (!file.exists()) {
-           return "download file not exits"
+            return "download file not exits"
         }
         val post = postService.findForId(pid)
                 ?: return "request of $pid isn't in database"
@@ -134,9 +137,8 @@ class PostController {
     }
 
 
-
     @PutMapping("/posts/{id}")
-    fun editPost(@PathVariable id: Long, title:String, md:MultipartFile): ResponseEntity<Unit> {
+    fun editPost(@PathVariable id: Long, title: String, md: MultipartFile): ResponseEntity<Unit> {
         saveMdFile(id, md)
         val post = post()
         post.title = title

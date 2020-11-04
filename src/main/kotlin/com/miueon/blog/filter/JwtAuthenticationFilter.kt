@@ -71,7 +71,9 @@ class JwtAuthenticationFilter(
         var failed:AuthenticationException? = null
         try {
             val token: String = getJwtToken(request)
+
             logger.info(token)
+
             if (StringUtils.isNotBlank(token)) {
                 val authToken = JwtAuthenticationToken(JWT.decode(token))
                 authResult = this.authenticationManager.authenticate(authToken)
@@ -90,8 +92,10 @@ class JwtAuthenticationFilter(
 
         if (authResult != null) {
             successfulAuthentication(request, response, filterChain, authResult)
+            logger.info("JWT Success!")
         } else if (!permissiveRequest(request)) {
             unsuccessfulAuthentication(request, response, failed!!)
+            logger.info("JWT Failed!")
             return
         }
 

@@ -1,0 +1,52 @@
+<script src="https://cdn.jsdelivr.net/npm/vue@2.6.12"></script>
+<div th:fragment="html" xmlns:th="http://www.thymeleaf.org">
+  <aside class="col-md-4">
+    <div class="widget widget-recent-posts">
+      <h3 class="widget-title">最新文章</h3>
+      <ul>
+        <li>
+          <a href="http://192.168.0.102:8000/posts/1/">Markdown 与代码高亮测试</a>
+        </li>
+        <li>
+          <a href="http://192.168.0.102:8000/posts/187/">重要状态服务管理地方最新</a>
+        </li>
+      </ul>
+    </div>
+    <div class="widget widget-archives">
+      <h3 class="widget-title">归档</h3>
+      <ul>
+        <li>
+          <a href="http://192.168.0.102:8000/archives/2020/10/">2020 年 10 月</a>
+        </li>
+        <li>
+          <a href="http://192.168.0.102:8000/archives/2020/9/">2020 年 9 月</a>
+        </li>
+      </ul>
+    </div>
+    <div class="widget widget-category">
+      <h3 class="widget-title">分类</h3>
+      <ul>
+        <li>
+          <a href="http://192.168.0.102:8000/categories/1/">Python学习笔记 <span class="post-count">(31)</span></a>
+        </li>
+        <li>
+          <a href="http://192.168.0.102:8000/categories/2/">开源项目 <span class="post-count">(41)</span></a>
+        </li>
+      </ul>
+    </div>
+    <div class="widget widget-tag-cloud">
+      <h3 class="widget-title">标签云</h3>
+      <ul>
+        <li>
+          <a href="http://192.168.0.102:8000/tags/1/">django <span class="post-count">(56)</span></a>
+        </li>
+        <li>
+          <a href="http://192.168.0.102:8000/tags/2/">Python <span class="post-count">(46)</span></a>
+        </li>
+      </ul>
+    </div>
+    <div class="rss">
+      <a href="http://192.168.0.102:8000/all/rss/"><span class="ion-social-rss-outline"></span> RSS 订阅</a>
+    </div>
+  </aside>
+</div>

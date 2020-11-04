@@ -1,41 +1,25 @@
 <script src="https://cdn.jsdelivr.net/npm/vue@2.6.12"></script>
-<div class="container" xmlns:th="http://www.thymeleaf.org" th:fragment="html">
+<div class="container content-body" xmlns:th="http://www.thymeleaf.org" th:fragment="html">
   <script>
     $(function () {
       let bloglist = new Vue({
         el: "#workingArea",
+        mixins:[mixin_auth],
         data() {
           return {
             uri: 'api/posts',
             auth_uri: 'auth/user',
-            pagination: null,
+            pagination: {
+              current: 0,
+              isHasContent: false,
+              isHasNext: false,
+              isHasPrevious: false,
+              navigatePageNums: [],
+              navigatePages: 0,
+              totalPages: 0
+            },
             posts: [],
             postCondition: false,
-            md: '```python\n' +
-              'import re\n' +
-              '\n' +
-              'content = \'Hello 123 4567 World_This is a Regex Demo\'\n' +
-              'print(len(content))\n' +
-              'result = re.match(\'^Hello\\s\\d\\d\\d\\s\\d{4}\\s\\w{10}\', content)\n' +
-              'print(result)\n' +
-              'print(result.group())\n' +
-              'print(result.span())\n' +
-              '```\n' +
-              '运行结果如下：\n' +
-              '```python\n' +
-              '41\n' +
-              '<_sre.SRE_Match object; span=(0, 25), match=\'Hello 123 4567 World_This\'>\n' +
-              'Hello 123 4567 World_This\n' +
-              '(0, 25)\n' +
-              '```',
-            user: {
-              name: "",
-              password: "",
-              repeatpassword: "",
-              isAdmin: false
-            },
-            rememberMe: false,
-            isAuthenticated: false
           }
         },
         mounted: function () {
@@ -43,27 +27,6 @@
           console.log(this.posts)
         },
         methods: {
-          getuser: function () {
-            axios({
-              method: 'get',
-              url: this.auth_uri,
-              headers: {
-                Authorization: getToken()
-              }
-            }).then(response => {
-              if (response.status === 401) {
-                this.isAuthenticated = false
-                return
-              }
-              this.isAuthenticated = true
-              console.log(response.data)
-              this.user.isAdmin = response.data.isAdmin
-              bloglist.user.name = response.data.name
-            }).catch(error => {
-              this.isAuthenticated = false
-              console.log(error)
-            })
-          },
           load: function (page) {
             let url = this.uri
             axios.get(`${url}?start=${page}&size=5`).then(function (response) {
@@ -95,140 +58,87 @@
           },
           jumpByNumber: function (page) {
             jumpByNumber(page, bloglist)
-          },
-          login_modal: function () {
-            console.log('modal clicked')
-            $('#loginModal').modal('show')
-          },
-          register_modal: function () {
-            $('#registerModal').modal('show')
-          },
-          register: function () {
-
-          },
-          login: function () {
-            axios.post('/login', {
-              username: this.user.name,
-              password: this.user.password
-            }).then(response => {
-              if (bloglist.rememberMe) {
-                console.log('rememberMe')
-                localStorage.setItem("__AUTH__", response.headers.authorization)
-              } else {
-                sessionStorage.setItem("__AUTH__", response.headers.authorization)
-              }
-              this.isAuthenticated = true;
-              bloglist.user.password = ""
-              $('#loginModal').modal('hide')
-              this.user.isAdmin = response.data.isAdmin
-            }).then(this.getuser)
-              .catch(error => {
-              this.isAuthenticated = false
-              $("span.loginErrorMessage").html("Login failed.")
-              $("div.loginErrorMessageDiv").css("visibility", "visible")
-            })
-          },
-          logout: function () {
-            console.log("logout")
-            axios.get("/logout").then(response => {
-                bloglist.isAuthenticated = false
-                localStorage.removeItem("__AUTH__")
-                sessionStorage.removeItem("__AUTH__")
-                this.user.isAdmin = false
-                this.user.name = ""
-              }
-            )
           }
-
-
-
         }
       })
     })
   </script>
-  <div class="blog-header">
-    <h1 class="blog-title">Miueon</h1>
-    <p class="lead blog-description">The guy pursue for hpf.</p>
-  </div>
+
+
   <div class="row">
-    <div class="col-sm-8 blog-main">
-      <div class="blog-post">
+
+    <main class="col-sm-8 ">
+
+      <article class="post post-58">
         <div v-for="ps in posts">
-          <h2 class="blog-post-title"><a :href="'detail?pid=' + ps.id">{{ps.title}}</a></h2>
-          <p class="blog-post-meta">{{formDate(ps.createdDate)}} created by {{ps.userName}}</p>
-          <div v-html="bodyAbbr(marked(ps.body))"></div>
+          <header class="entry-header">
+            <h1 class="entry-title">
+              <a :href="'detail?pid=' + ps.id">{{ps.title}}</a>
+            </h1>
+            <div class="entry-meta">
+              <!--              todo: category, comments with jump link, reads-->
+              <span class="post-category"><a href="#">#category</a></span>
+              <span class="post-date"><a href="#">{{formDate(ps.createdDate)}}</a></span>
+              <span class="post-author"><a href="#">{{ps.userName}}</a></span>
+              <span class="comments-link"><a :href="'detail?pid=' + ps.id">#0 comments</a></span>
+              <span class="views-count"><a :href="'detail?pid=' + ps.id">#0 reads</a></span>
+            </div>
+          </header>
+          <div class="entry-content clearfix">
+            <p v-html="bodyAbbr(marked(ps.body))"></p>
+
+            <div class="read-more cl-effect-14">
+              <a :href="'detail?pid=' + ps.id">Continue <span class="meta-nav">→</span></a>
+            </div>
+          </div>
+
+          <!--          <h2 class="blog-post-title"><a :href="'detail?pid=' + ps.id">{{ps.title}}</a></h2>-->
+          <!--          <p class="blog-post-meta">{{formDate(ps.createdDate)}} created by {{ps.userName}}</p>-->
+
+          <!--          <div v-html="bodyAbbr(marked(ps.body))"></div>-->
+
         </div>
-      </div>
-      <template v-if="postCondition">
-        <nav>
-          <ul class="pagination">
-            <li :class="{disabled: !pagination.isHasPrevious}">
-              <a href="#nowhere" @click="jump('first')">«</a>
-            </li>
-            <li :class="{ disabled: !pagination.isHasPrevious }">
-              <a href="#nowhere" @click="jump('pre')">‹</a>
-            </li>
+      </article>
+      <ul class="text-center pagination ">
+        <li :class="{disabled: !pagination.isHasPrevious}">
+          <a href="#nowhere" @click="jump('first')">«</a>
+        </li>
+        <li :class="{ disabled: !pagination.isHasPrevious }">
+          <a href="#nowhere" @click="jump('pre')">‹</a>
+        </li>
 
-            <li v-for="i in pagination.navigatePageNums">
-              <a href="#nowhere" v-on:click="jumpByNumber(i)">
-                {{i}}
-              </a>
-            </li>
+        <li v-for="i in pagination.navigatePageNums">
+          <a href="#nowhere" v-on:click="jumpByNumber(i)">
+            {{i}}
+          </a>
+        </li>
 
-            <li :class="{ disabled: !pagination.isHasNext }">
-              <a href="#nowhere" @click="jump('next')">›</a>
-            </li>
-            <li :class="{ disabled: !pagination.isHasNext }">
-              <a href="#nowhere" @click="jump('last')">»</a>
-            </li>
-          </ul>
-        </nav>
-      </template>
+        <li :class="{ disabled: !pagination.isHasNext }">
+          <a href="#nowhere" @click="jump('next')">›</a>
+        </li>
+        <li :class="{ disabled: !pagination.isHasNext }">
+          <a href="#nowhere" @click="jump('last')">»</a>
+        </li>
+      </ul>
+    </main><!-- /.blog-main -->
 
+    <aside class="col-md-4">
 
-    </div><!-- /.blog-main -->
-
-    <div class="col-sm-3 col-sm-offset-1 blog-sidebar">
       <div v-if="user.isAdmin" class="sidebar-module">
-        <a type="button" class="btn btn-default btn-lg" :href="'newpost'">
-          <span class="glyphicon glyphicon-open"></span>New post
+<!--        <a type="button" class="btn btn-default btn-lg" href="/admin">-->
+<!--          <span class="glyphicon glyphicon-open"></span>Admin Page-->
+<!--        </a>-->
+        <a type="button" class="btn btn-default btn-lg" :href="'admin'">
+          <span class="glyphicon glyphicon-console"></span>Admin
         </a>
       </div>
 
-      <div class="sidebar-module sidebar-module-inset">
-        <h4>About</h4>
-        <p>Etiam porta <em>sem malesuada magna</em> mollis euismod. Cras mattis consectetur purus sit amet
-          fermentum. Aenean lacinia bibendum nulla sed consectetur.</p>
-      </div>
-
-      <div class="sidebar-module">
-        <h4>Archives</h4>
-        <ol class="list-unstyled">
-          <li><a href="#">March 2014</a></li>
-          <li><a href="#">February 2014</a></li>
-          <li><a href="#">January 2014</a></li>
-          <li><a href="#">December 2013</a></li>
-          <li><a href="#">November 2013</a></li>
-          <li><a href="#">October 2013</a></li>
-          <li><a href="#">September 2013</a></li>
-          <li><a href="#">August 2013</a></li>
-          <li><a href="#">July 2013</a></li>
-          <li><a href="#">June 2013</a></li>
-          <li><a href="#">May 2013</a></li>
-          <li><a href="#">April 2013</a></li>
-        </ol>
-      </div>
-      <div class="sidebar-module">
-        <h4>Elsewhere</h4>
-        <ol class="list-unstyled">
-          <li><a href="#">GitHub</a></li>
-          <li><a href="#">Twitter</a></li>
-          <li><a href="#">Facebook</a></li>
-        </ol>
-      </div>
-    </div><!-- /.blog-sidebar -->
-
-  </div><!-- /.row -->
+    </aside>
 
 
-</div>
+    <div th:replace="include/aside::html"></div>
+  </div><!-- /.blog-sidebar -->
+</div><!-- /.row -->
+
+
+

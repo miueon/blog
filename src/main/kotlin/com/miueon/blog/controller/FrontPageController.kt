@@ -24,4 +24,7 @@ class FrontPageController {
     fun newpost(): String {
         return "newpost"
     }
+
+
+
 }

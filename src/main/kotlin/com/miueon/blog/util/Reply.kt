@@ -7,9 +7,9 @@ enum class CodeEnum(val code: Int, val msg: String) {
     ERROR_SERVER(505, "server internal error.")
 }
 class Reply(
-        var code: Int,
-        var msg: String,
-        var data:Any?
+        var code: Int? = null,
+        var msg: String? = null,
+        var content:Any? = null
 ) {
     fun fillCode(codeEnum: CodeEnum):Reply {
         this.code = codeEnum.code
@@ -26,7 +26,7 @@ class Reply(
     fun fillData(data: Any?):Reply {
         this.code = CodeEnum.SUCCESS.code
         this.msg = CodeEnum.SUCCESS.msg
-        this.data = data
+        this.content = data
         return this
     }
 }

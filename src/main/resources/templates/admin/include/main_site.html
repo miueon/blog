@@ -1,0 +1,70 @@
+<script src="https://cdn.jsdelivr.net/npm/vue@2.6.12"></script>
+<div th:fragment="html" xmlns:th="http://www.thymeleaf.org">
+  <div id="content" class="colMS">
+    <h1>Manage</h1>
+
+    <div id="content-main">
+      <div class="app-blog module">
+        <table>
+          <caption>
+            <a href="#" class="section">Blog</a>
+          </caption>
+          <tbody>
+          <tr class="model-category">
+            <th scope="row"><a href="/admin/blog/category/">Category</a>
+            </th>
+            <td><a href="/admin/blog/category/add/" class="addlink">
+              Add</a></td>
+            <td><a href="/admin/blog/category/" class="changelink">
+              Modify</a></td>
+          </tr>
+          <tr class="model-post">
+            <th scope="row"><a href="/admin/blog/post/">Post</a></th>
+            <td><a href="/admin/blog/post/add/" class="addlink">Add</a></td>
+            <td><a href="/admin/blog/post/" class="changelink">Modify</a></td>
+          </tr>
+          <tr class="model-tag">
+            <th scope="row"><a href="/admin/blog/tag/">Tag</a></th>
+            <td><a href="/admin/blog/tag/add/" class="addlink">Add</a></td>
+            <td><a href="/admin/blog/tag/" class="changelink">Modify</a></td>
+          </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="app-comments module">
+        <table>
+          <caption>
+            <a href="#" class="section" >Comment</a>
+          </caption>
+          <tbody>
+          <tr class="model-comment">
+            <th scope="row"><a href="/admin/comments/comment/">Comments</a></th>
+            <td><a href="/admin/comments/comment/add/" class="addlink">Add</a></td>
+            <td><a href="/admin/comments/comment/" class="changelink">Modify</a></td>
+          </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <br class="clear">
+  </div>
+  <script>
+    $(function () {
+      let main_site = new Vue({
+        el: "#workingArea",
+        mixins: [mixin_auth],
+        data() {
+          return {
+
+          }
+        },
+        mounted: function () {
+          this.getuser()
+        },
+        methods: {
+
+        }
+      })
+    })
+  </script>
+</div>

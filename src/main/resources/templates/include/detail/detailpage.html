@@ -1,15 +1,64 @@
 <script src="https://cdn.jsdelivr.net/npm/vue@2.6.12"></script>
-<div class="container" th:fragment="html" xmlns:th="http://www.thymeleaf.org">
+
+<div class="container content-body" th:fragment="html" xmlns:th="http://www.thymeleaf.org">
   <div class="row">
-    <div class="col-sm-8 blog-main">
-      <div class="blog-post">
-        <template v-if="condition">
-          <h2 class="blog-post-title">{{post.title}}</a></h2>
-          <p class="blog-post-meta">{{formDate(post.createdDate)}} created by {{post.userName}}</p>
-          <div v-html="marked(post.body)"></div>
-        </template>
-      </div>
-    </div>
+    <main class="col-md-8">
+      <article class="post">
+        <header class="entry-header">
+          <h1 class="entry-title">{{post.title}}</h1>
+          <div class="entry-meta">
+
+            <span class="post-category"><a href="#">开源项目</a></span>
+
+            <span class="post-date"><a href="#"><time class="entry-date"
+                                                      :datetime="'formDate(post.createdDate)'">
+              {{formDate(post.createdDate)}}
+            </time></a></span>
+
+            <span class="post-author"><a href="#">{{post.username}}</a></span>
+            <span class="comments-link"><a href="#comment-area">0 评论</a></span>
+            <span class="views-count"><a href="#">3 阅读</a></span>
+          </div>
+        </header>
+        <div class="entry-content clearfix" v-html="marked(post.body)"></div>
+      </article>
+      <section class="comment-area" id="comment-area">
+        <hr>
+        <h3>Leave your comment</h3>
+        <form action="#" method="post" class="comment-form">
+          <input type="hidden" name="csrfmiddlewaretoken"
+                 value="zCqFkFAAvw4U1cYZgwP0fuElDBHLDqp1vUeVqmA5wARkuB4cuvJnoxU5GwTtVeJ2">
+          <div class="row">
+            <div class="col-md-4">
+              <label for="id_name">名字：</label>
+              <input type="text" name="name" maxlength="50" required="" id="id_name">
+            </div>
+            <div class="col-md-4">
+              <label for="id_email">邮箱：</label>
+              <input type="email" name="email" maxlength="254" required="" id="id_email">
+            </div>
+            <div class="col-md-4">
+              <label for="id_url">网址：</label>
+              <input type="url" name="url" maxlength="200" id="id_url">
+            </div>
+            <div class="col-md-12">
+              <label for="id_text">内容：</label>
+              <textarea name="text" cols="40" rows="10" required="" id="id_text" spellcheck="false"></textarea>
+              <button type="submit" class="comment-btn">发表</button>
+            </div>
+          </div>    <!-- row -->
+        </form>
+        <div class="comment-list-panel">
+          <h3>评论列表，共 <span>0</span> 条评论</h3>
+          <ul class="comment-list list-unstyled">
+            暂无评论 # treat like a post
+          </ul>
+        </div>
+      </section>
+    </main>
+
+
+
     <div class="col-sm-3 col-sm-offset-1 blog-sidebar">
       <div class="sidebar-module">
         <a type="button" class="btn btn-default btn-lg" @click="delPost">
@@ -27,180 +76,109 @@
         </a>
       </div>
     </div>
+
+    <div th:replace="include/aside::html"></div>
   </div>
+
   <script>
-    let pid = getUrlParms("pid")
-    let detail = new Vue({
-      el: "#workingArea",
-      data() {
-        return {
-          pid: pid,
-          uri: 'api/posts/',
-          post: null,
-          condition: false,
-
-          isAuthenticated: false,
-          user: {
-            name: '',
-            password: '',
-            repeatpassword: '',
-            isAdmin: false
+    $(function (){
+      let pid = getUrlParms("pid")
+      let detail = new Vue({
+        el: "#workingArea",
+        mixins: [mixin_auth],
+        data() {
+          return {
+            pid: pid,
+            uri: 'api/posts/',
+            post: null,
+            condition: false
+          }
+        },
+        mounted: function () {
+          marked.setOptions({
+            highlight: function (code, lang) {
+              let result = hljs.highlight(lang, code).value
+              hljs.initLineNumbersOnLoad();
+              result = hljs.lineNumbersValue(result)
+              return result
+            }
+          })
+          this.load()
+        },
+        methods: {
+          load: function () {
+            let url = this.uri + pid
+            axios.get(url).then(function (response) {
+              detail.post = response.data
+              detail.$set(detail, 'condition', true)
+            });
           },
-          rememberMe: false
-        }
-      },
-      mounted: function () {
-
-        marked.setOptions({
-          highlight: function (code, lang) {
-
-            let result = hljs.highlight(lang, code).value
-            hljs.initLineNumbersOnLoad();
-            result = hljs.lineNumbersValue(result)
-            return result
-          }
-        })
-        this.load()
-
-
-      },
-      methods: {
-        load: function () {
-          let url = this.uri + pid
-          axios.get(url).then(function (response) {
-            detail.post = response.data
-            detail.$set(detail, 'condition', true)
-          });
-        },
-        formDate: function (value) {
-          if (value === null) {
-            return ""
-          }
-          let formatString = 'YYYY-MM-DD HH:mm:ss'
-          return moment(value).format(formatString)
-        },
-        delPost: function () {
-          let url = this.uri + pid
-          axios.delete(url).then(function (response) {
-            // redirect to homePage
-            window.location.href = "/"
-          })
-        },
-        downloadPost: function () {
-          let url = this.uri + `download?pid=${pid}`
-          const queryArgs = {
-            url,
-            method: "get",
-            headers: {
-              Accept: 'application/json',
-              'Content-Type': 'application/json; charset=utf-8',
-              withCredentials: true
-            },
-          }
-          axios.request(queryArgs).then(
-            response => {
-              // 提取文件名 得小写 content-disposition
-              const filename = response.headers['content-disposition'].match(
-                /filename=(.*)/
-              )[1]
-              if (typeof filename === "undefined") {
-                alert(response.data)
-                return
-              }
-              // 将二进制流转为blob
-              const blob = new Blob([response.data], {type: 'application/octet-stream'});
-              if (typeof window.navigator.msSaveBlob !== 'undefined') {
-                // 兼容IE，window.navigator.msSaveBlob：以本地方式保存文件
-                window.navigator.msSaveBlob(blob, decodeURI(filename))
-              } else {
-                // magic part
-                // 创建新的URL并指向File对象或者Blob对象的地址
-                const blobURL = window.URL.createObjectURL(blob)
-                // 创建a标签，用于跳转至下载链接
-                const tempLink = document.createElement('a')
-                tempLink.style.display = 'none'
-                tempLink.href = blobURL
-                tempLink.setAttribute('download', decodeURI(filename))
-                // 兼容：某些浏览器不支持HTML5的download属性
-                if (typeof tempLink.download === 'undefined') {
-                  tempLink.setAttribute('target', '_blank')
-                }
-                // 挂载a标签
-                document.body.appendChild(tempLink)
-                tempLink.click()
-                document.body.removeChild(tempLink)
-                // 释放blob URL地址
-                window.URL.revokeObjectURL(blobURL)
-              }
+          formDate: function (value) {
+            if (value === null) {
+              return ""
             }
-          ).catch(err => console.log(err))
-        },
-
-        /////////////////////////
-        get_user: function () {
-          axios({
-            method: 'get',
-            url: authUri,
-            headers: {
-              Authorization: getToken()
-            }
-          }).then(response => {
-            if (response.status === 401) {
-              this.isAuthenticated = false
-              return
-            }
-            this.isAuthenticated = true
-            this.user.isAdmin = response.data.isAdmin
-            this.user.name = response.data.name
-          }).catch(error => {
-            this.isAuthenticated = false
-          })
-        },
-        login_modal: function () {
-          console.log('modal clicked')
-          $('#loginModal').modal('show')
-        },
-        register_modal: function () {
-          $('#registerModal').modal('show')
-        },
-        register: function () {
-
-        },
-        login: function () {
-          axios.post('/login', {
-            username: this.user.name,
-            password: this.user.password
-          }).then(response => {
-            if (this.rememberMe) {
-              console.log('rememberMe')
-              localStorage.setItem("__AUTH__", response.headers.authorization)
-            } else {
-              sessionStorage.setItem("__AUTH__", response.headers.authorization)
-            }
-            this.isAuthenticated = true;
-            this.user.password = ""
-            $('#loginModal').modal('hide')
-            this.user.isAdmin = response.data.isAdmin
-          }).then(this.getuser)
-            .catch(error => {
-              this.isAuthenticated = false
-              $("span.loginErrorMessage").html("Login failed.")
-              $("div.loginErrorMessageDiv").css("visibility", "visible")
+            let formatString = 'YYYY-MM-DD HH:mm:ss'
+            return moment(value).format(formatString)
+          },
+          delPost: function () {
+            let url = this.uri + pid
+            axios.delete(url).then(function (response) {
+              // redirect to homePage
+              window.location.href = "/"
             })
-        },
-        logout: function () {
-          console.log("logout")
-          axios.get("/logout").then(response => {
-              this.isAuthenticated = false
-              localStorage.removeItem("__AUTH__")
-              sessionStorage.removeItem("__AUTH__")
-              this.user.isAdmin = false
-              this.user.name = ""
+          },
+          downloadPost: function () {
+            let url = this.uri + `download?pid=${pid}`
+            const queryArgs = {
+              url,
+              method: "get",
+              headers: {
+                Accept: 'application/json',
+                'Content-Type': 'application/json; charset=utf-8',
+                withCredentials: true
+              },
             }
-          )
+            axios.request(queryArgs).then(
+              response => {
+                // 提取文件名 得小写 content-disposition
+                const filename = response.headers['content-disposition'].match(
+                  /filename=(.*)/
+                )[1]
+                if (typeof filename === "undefined") {
+                  alert(response.data)
+                  return
+                }
+                // 将二进制流转为blob
+                const blob = new Blob([response.data], {type: 'application/octet-stream'});
+                if (typeof window.navigator.msSaveBlob !== 'undefined') {
+                  // 兼容IE，window.navigator.msSaveBlob：以本地方式保存文件
+                  window.navigator.msSaveBlob(blob, decodeURI(filename))
+                } else {
+                  // magic part
+                  // 创建新的URL并指向File对象或者Blob对象的地址
+                  const blobURL = window.URL.createObjectURL(blob)
+                  // 创建a标签，用于跳转至下载链接
+                  const tempLink = document.createElement('a')
+                  tempLink.style.display = 'none'
+                  tempLink.href = blobURL
+                  tempLink.setAttribute('download', decodeURI(filename))
+                  // 兼容：某些浏览器不支持HTML5的download属性
+                  if (typeof tempLink.download === 'undefined') {
+                    tempLink.setAttribute('target', '_blank')
+                  }
+                  // 挂载a标签
+                  document.body.appendChild(tempLink)
+                  tempLink.click()
+                  document.body.removeChild(tempLink)
+                  // 释放blob URL地址
+                  window.URL.revokeObjectURL(blobURL)
+                }
+              }
+            ).catch(err => console.log(err))
+          }
         }
-
-      }
+      })
     })
+
   </script>
 </div>

@@ -1,0 +1,109 @@
+<script src="https://cdn.jsdelivr.net/npm/vue@2.6.12"></script>
+<head th:fragment="html" xmlns:th="http://www.thymeleaf.org">
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>Admin site</title>
+
+
+  <meta name="viewport" content="user-scalable=no, width=device-width, initial-scale=1.0, maximum-scale=1.0">
+
+  <meta name="robots" content="NONE,NOARCHIVE">
+
+  <link rel="stylesheet" href="css/bnwtheme/pace.css">
+
+  <script src="js/jquery/2.0.0/jquery.min.js"></script>
+  <link href="css/bootstrap/3.3.6/bootstrap.min.css" rel="stylesheet">
+
+  <script src="js/bootstrap/3.3.6/bootstrap.min.js"></script>
+  <script src="js/vue/2.5.16/vue.min.js"></script>
+  <script src="js/axios/0.17.1/axios.min.js"></script>
+  <script src="js/moment/2.22.2/moment.js"></script>
+  <script src="js/pace.min.js"></script>
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/dashboard.css">
+  <link rel="stylesheet" href="css/responsive.css">
+  <script>
+    function getToken() {
+      let token = sessionStorage.getItem('__AUTH__')
+      if (token === null) {
+        token = localStorage.getItem('__AUTH__')
+      }
+      return `Bearer ${token}`;
+    }
+
+    function getUrlParms(para) {
+      let search = location.search; //页面URL的查询部分字符串
+      let arrPara = []; //参数数组。数组单项为包含参数名和参数值的字符串，如“para=value”
+      let arrVal = []; //参数值数组。用于存储查找到的参数值
+
+      if (search !== "") {
+        let index = 0;
+        search = search.substr(1); //去除开头的“?”
+        arrPara = search.split("&");
+
+        for (i in arrPara) {
+          let paraPre = para + "="; //参数前缀。即参数名+“=”，如“para=”
+          if (arrPara[i].indexOf(paraPre) === 0 && paraPre.length < arrPara[i].length) {
+            arrVal[index] = decodeURI(arrPara[i].substr(paraPre.length));
+            //顺带URI解码避免出现乱码
+            index++;
+          }
+        }
+      }
+
+      if (arrVal.length === 1) {
+        return arrVal[0];
+      } else if (arrVal.length === 0) {
+        return null;
+      } else {
+        return arrVal;
+      }
+    }
+
+    let mixin_auth = {
+      data: function () {
+        return {
+          auth_uri: "/auth/user",
+          user: {
+            name: ""
+          },
+          isAuthenticated: false
+        }
+      },
+      methods: {
+        getuser: function () {
+          axios({
+            method: 'get',
+            url: this.auth_uri,
+            headers: {
+              Authorization: getToken()
+            }
+          }).then(response => {
+            if (response.status === 401) {
+              this.isAuthenticated = false
+              return
+            }
+            this.isAuthenticated = true
+            console.log(response.data)
+            this.user.name = response.data.name
+          }).catch(error => {
+            this.isAuthenticated = false
+            console.log(error)
+            window.location.href = '/'
+          })
+        },
+        logout: function () {
+          console.log("logout")
+          axios.get("/logout").then(response => {
+              this.isAuthenticated = false
+              localStorage.removeItem("__AUTH__")
+              sessionStorage.removeItem("__AUTH__")
+              this.user.name = ""
+            }
+          ).finally(() => {
+            window.location.href ="/"
+          })
+        }
+      }
+    }
+  </script>
+</head>

@@ -6,10 +6,13 @@ import com.miueon.blog.service.JwtAuthenticationProvider
 import com.miueon.blog.service.UserService
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.annotation.Bean
+import org.springframework.context.annotation.Configuration
+import org.springframework.http.HttpMethod
 import org.springframework.security.authentication.AuthenticationManager
 import org.springframework.security.authentication.AuthenticationProvider
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder
+import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter
@@ -39,6 +42,10 @@ class WebSecurityConfig(
     override fun configure(http: HttpSecurity) {
         http.authorizeRequests()
                 .antMatchers("/auth/user/**").hasRole("USER")
+             //   .antMatchers("/admin/api/**").hasRole("ADMIN")
+//                .antMatchers(AUTH_WHITELIST).permitAll()
+//                .antMatchers(HttpMethod.POST, "/cachedemo/v1/users/signup").permitAll()
+//                .anyRequest().authenticated()
                 .anyRequest().permitAll()
                 .and()
                 .csrf().disable()

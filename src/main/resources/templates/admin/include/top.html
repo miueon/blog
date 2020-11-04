@@ -1,0 +1,14 @@
+<script src="https://cdn.jsdelivr.net/npm/vue@2.6.12"></script>
+<div th:fragment="html" xmlns:th="http://www.thymeleaf.org">
+  <div id="header">
+    <div id="branding">
+      <h1 id="site-name"><a href="/admin">Post mangage</a> </h1>
+    </div>
+    <div id="user-tools">
+      <a href="/">Front site</a> /
+      <a href="/admin/password_change">change password</a> /
+<!--     todo change password repalce with modal-->
+      <a href="#" @click="logout">logout</a>
+    </div>
+  </div>
+</div>

@@ -49,7 +49,12 @@ class post {
     @TableField(value = "content")
     var body: String? = null
     @TableField(value = "createdDate")
-    var createdDate: Date = Date()
+    var createdDate: Date? = Date()
+
+    @TableField(value = "modifiedDate")
+    var modifiedDate: Date = Date()
+    var cid: Long? = null
+
     @TableField(exist = false)
     var user: user? = null
     @TableField(exist = false)
@@ -60,7 +65,13 @@ class post {
     constructor()
 
     constructor(id: Long, uid: Long, title: String, body: String, createdDate: Date,
-                user: user, userName: String, createdBy: String){
+                user: user,
+                userName: String,
+                createdBy: String,
+                modifiedDate: Date,
+                cid: Long
+
+                ){
         this.id = id
         this.uid = uid
         this.title = title
@@ -69,6 +80,8 @@ class post {
         this.userName = userName
         this.createdBy = createdBy
         this.createdDate = createdDate
+        this.modifiedDate = modifiedDate
+        this.cid = cid
     }
 }
 
@@ -80,7 +93,7 @@ class comment(
         @JsonProperty("postId")
         var pid: Long? = null,
         @TableField(value = "createdDate")
-        var createdDate: Date = Date(),
+        var createdDate: Date? = null,
         @JsonProperty("body")
         var content: String? = null,
         @TableField(exist = false)
@@ -107,4 +120,23 @@ class user_autority(
         var authority: authority?,
         @TableField(exist = false)
         var user: user?
+)
+
+class tags(
+        @TableId(type = IdType.AUTO)
+        var id: Long,
+        var t_name:String
+)
+
+class category(
+        @TableId(type = IdType.AUTO)
+        var id:Long,
+        var c_name:String
+)
+
+class post_tags(
+        @TableId(type = IdType.AUTO)
+        var id:Long,
+        var pid:Long,
+        var tid:Long
 )

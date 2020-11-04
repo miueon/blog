@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page
 import com.miueon.blog.mapper.PostMapper
 import com.miueon.blog.mapper.UserMapper
 import com.miueon.blog.pojo.post
+import com.miueon.blog.util.ApiException
 import com.miueon.blog.util.Page4Navigator
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
@@ -31,14 +32,14 @@ class PostService(@Autowired
 
     fun findForId(id: Long): post? {
         val result = postMapper.selectById(id)
-        // read from {id}.md file. may be replace it by store md file into database?
-        result.body = readBodyFromMdFile(result.id!!)
+
         result.user = userMapper.selectById(result?.uid)
         result.user?.password = null
         result.userName = result.user?.name
         return result
     }
-    private fun readBodyFromMdFile(id: Long): String {
+
+    fun readBodyFromMdFile(id: Long): String {
         val file = File("$downloadMdPath${File.separator}${id}.md")
 
         val reader = BufferedReader(InputStreamReader(file.inputStream(),
@@ -66,21 +67,23 @@ class PostService(@Autowired
         return result.records
     }
 
-    fun addPost(title: String): Long {
+    fun addPost(title: String): post {
         val post = post()
         post.title = title
         val user = userService.getRawUser("crux")
-        // todo: add a exception
         post.uid = user?.id
-        post.body = "null"
         postMapper.insert(post)
-        return post.id!!
+        return post
+    }
+
+    fun saveBody(originPost: post) {
+        postMapper.updateById(originPost)
     }
 
 
     fun updatePost(p: post, pid: Long): Int {
         val originalPost = findForId(pid)
-        originalPost?.body = "null"
+
         val ktUpdateWrapper = KtUpdateWrapper(post::class.java)
         ktUpdateWrapper.set(post::title, p.title).eq(post::id, pid)
         val result = postMapper.update(originalPost, ktUpdateWrapper)
@@ -103,13 +106,8 @@ class PostService(@Autowired
             it.user = userMapper.selectById(it.uid)
             it.userName = it.user?.name
             it.user = null
-            if (it.body == "null") {
-                it.body = readBodyFromMdFile(it.id!!)
-
-            }
         }
-        val pages = Page4Navigator(result, navigatePages)
-        return pages
+        return Page4Navigator(result, navigatePages)
     }
 
     fun findByKeyword(keyword: String): List<post>? {
