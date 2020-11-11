@@ -8,14 +8,15 @@ import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler
 import java.lang.RuntimeException
 import java.util.HashMap
+import com.miueon.blog.util.ResultCode
 
 class ApiException : RuntimeException {
-    var httpStatus: HttpStatus? = null
-    constructor(cause: Throwable?, httpStatus: HttpStatus?) : super(cause) {
-        this.httpStatus = httpStatus
+    var httpStatus: HttpStatus
+    constructor(cause: Throwable?, code: ResultCode) : super(cause) {
+        this.httpStatus = HttpStatus.valueOf(code.code)
     }
-    constructor(message: String?, httpStatus: HttpStatus?) : super(message) {
-        this.httpStatus = httpStatus
+    constructor(message: String?, code: ResultCode) : super(message) {
+        this.httpStatus = HttpStatus.valueOf(code.code)
     }
     constructor(message: String?) : super(message) {
         httpStatus = HttpStatus.INTERNAL_SERVER_ERROR
@@ -29,12 +30,17 @@ class ApiException : RuntimeException {
 class ApiExceptionHandler : ResponseEntityExceptionHandler() {
     @ExceptionHandler(ApiException::class)
     fun handleApiException(e: ApiException): ResponseEntity<Any?> {
-        val reply = Reply(e.httpStatus!!.value(), e.message)
-        return ResponseEntity(reply, e.httpStatus!!)
+        return when (e.httpStatus.value()) {
+            ResultCode.ERROR_PATH.code ->
+                ResponseEntity(Reply.errorPath(e.message ?: ResultCode.ERROR_PATH.msg), e.httpStatus)
+            ResultCode.ERROR_SERVER.code ->
+                ResponseEntity(Reply.errorServer(e.message ?: ResultCode.ERROR_SERVER.msg), e.httpStatus)
+            else -> handleException(e)
+        }
     }
     @ExceptionHandler(Exception::class)
     fun handleException(e: Exception): ResponseEntity<Any?> {
-        val reply = Reply(HttpStatus.INTERNAL_SERVER_ERROR.value(), e.message)
+        val reply = Reply.errorServer(e.message ?: HttpStatus.INTERNAL_SERVER_ERROR.toString())
         return ResponseEntity(reply, HttpStatus.INTERNAL_SERVER_ERROR)
     }
 }

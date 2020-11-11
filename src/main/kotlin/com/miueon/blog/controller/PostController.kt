@@ -45,7 +45,7 @@ class PostController {
 //           // redisService[RedisConfig.REDIS_KEY_DATABASE + "post$id"] = tmp
 //            post = tmp
 //        }
-        var post = postService.findForId(id) ?: throw ApiException("post not exist", HttpStatus.NOT_FOUND)
+        val post = postService.findForId(id) ?: throw ApiException("post not exist", HttpStatus.NOT_FOUND)
         return ResponseEntity(post as post, HttpStatus.OK)
     }
 
@@ -64,7 +64,7 @@ class PostController {
              posts = tmp
          }*/
 
-        val pages = postService.findAllByOrderByCreatedDateDescPage(Page<post>(start.toLong(), size.toLong()),
+        val pages = postService.findAllByOrderByCreatedDateDescPage(Page(start.toLong(), size.toLong()),
                 5)
 
         return ResponseEntity(pages, HttpStatus.OK)

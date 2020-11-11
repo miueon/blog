@@ -21,8 +21,7 @@ class UserAuthController{
     @Autowired
     lateinit var userService: UserService
 
-    @GetMapping("/user")
-    fun getUser():ResponseEntity<userDto> {
+    private fun sharedReturnInfo():ResponseEntity<userDto> {
         val user = userDto()
         val authentication = SecurityContextHolder.getContext().authentication
 //        val roles = authentication.authorities.stream().map { it.authority }.toList()
@@ -30,5 +29,15 @@ class UserAuthController{
         user.isAdmin = authentication.authorities.stream().anyMatch{it.authority == "ROLE_ADMIN"}
         user.name = authentication.name
         return ResponseEntity(user, HttpStatus.OK)
+    }
+
+    @GetMapping("/user")
+    fun getUser():ResponseEntity<userDto> {
+        return sharedReturnInfo()
+    }
+
+    @GetMapping("/admin")
+    fun getAdmin(): ResponseEntity<userDto> {
+        return sharedReturnInfo()
     }
 }

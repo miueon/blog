@@ -28,6 +28,11 @@ import java.util.*
 @EnableWebSecurity
 class WebSecurityConfig(
         @Autowired val userService: UserService):WebSecurityConfigurerAdapter() {
+    companion object{
+         val AUTH_LIST:List<String> = listOf(
+                 "/"
+         )
+    }
     @Bean("jwtAuthenticationProvider")
     fun jwtAuthenticationProvider(): AuthenticationProvider {
         return JwtAuthenticationProvider(userService)
@@ -42,6 +47,7 @@ class WebSecurityConfig(
     override fun configure(http: HttpSecurity) {
         http.authorizeRequests()
                 .antMatchers("/auth/user/**").hasRole("USER")
+                .antMatchers("/auth/admin/**").hasRole("ADMIN")
              //   .antMatchers("/admin/api/**").hasRole("ADMIN")
 //                .antMatchers(AUTH_WHITELIST).permitAll()
 //                .antMatchers(HttpMethod.POST, "/cachedemo/v1/users/signup").permitAll()
