@@ -7,7 +7,7 @@ import org.springframework.http.HttpStatus
 class Reply<T>(
         var code: String? = null,
         var msg: String? = null,
-        var content: T? = null
+        var payLoad: T? = null
 ) {
     companion object {
         val SUCCESS:String = "0"
@@ -17,7 +17,7 @@ class Reply<T>(
         }
 
         fun <T> success(obj: T)
-                = Reply(code = SUCCESS, msg = "Operation succeed.", content = obj)
+                = Reply(code = SUCCESS, msg = "Operation succeed.", payLoad = obj)
 
         fun error(code: String, msg: String):Reply<Unit> = Reply(code, msg, Unit)
 

@@ -4,9 +4,12 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page
 import com.miueon.blog.config.RedisConfig
 import com.miueon.blog.exceptions.ApiException
 import com.miueon.blog.mpg.model.PostDO
+import com.miueon.blog.pojo.post
 import com.miueon.blog.service.PostService
+import com.miueon.blog.service.TagPostService
 import com.miueon.blog.service.impl.RedisServiceImpl
 import com.miueon.blog.util.Page4Navigator
+import com.miueon.blog.util.Reply
 import io.swagger.annotations.Api
 import io.swagger.annotations.ApiOperation
 import io.swagger.annotations.ApiParam
@@ -26,10 +29,12 @@ import javax.servlet.http.HttpServletResponse
 
 @RestController
 @Api(tags = ["PostController"], description = "Post crud API")
-@RequestMapping("/api")
+@RequestMapping("/api/post")
 class PostController {
     @Autowired
     lateinit var postService: PostService
+    @Autowired
+    lateinit var tagPostService: TagPostService
 
     @Autowired
     lateinit var redisService: RedisServiceImpl
@@ -44,8 +49,8 @@ class PostController {
      * @return PostDO with additional info
       */
     @ApiOperation("get post by id in PathVariable")
-    @GetMapping("/posts/{id}")
-    fun getPost(@PathVariable id: Int): ResponseEntity<PostDO> {
+    @GetMapping("/{id}")
+    fun getPost(@PathVariable id: Int): ResponseEntity<Reply<PostDO>> {
         log.debug("REST request to get Post : {}", id)
         // redisService.del(RedisConfig.REDIS_KEY_DATABASE +"post$id")
 //        var post = redisService[RedisConfig.REDIS_KEY_DATABASE + "post$id"]
@@ -57,16 +62,16 @@ class PostController {
 //            post = tmp
 //        }
         val post = postService.findForId(id) ?: throw ApiException("post not exist", HttpStatus.NOT_FOUND)
-        return ResponseEntity(post, HttpStatus.OK)
+        return ResponseEntity(Reply.success(post), HttpStatus.OK)
     }
 
     @ApiOperation("Pagination for post, the default visible page variation is 5")
-    @GetMapping("/posts")
+    @GetMapping
     fun getPostList(@RequestParam(value = "start", defaultValue = "1")
                     @ApiParam("page number") start: Int,
                     @RequestParam(value = "size", defaultValue = "5")
                     @ApiParam("each page size") size: Int)
-            : ResponseEntity<Page4Navigator<PostDO>> {
+            : ResponseEntity<Reply<Page4Navigator<PostDO>>> {
 
         /* print("test")
          //redisService.del(RedisConfig.REDIS_KEY_DATABASE + "posts${myPage!!.page}.${myPage.size}")
@@ -81,7 +86,7 @@ class PostController {
         val pages = postService.findAllByOrderByCreatedDateDescPage(Page(start.toLong(), size.toLong()),
                 5)
 
-        return ResponseEntity(pages, HttpStatus.OK)
+        return ResponseEntity(Reply.success(pages), HttpStatus.OK)
     }
 
     data class keywordDto(val keyword: String)
@@ -96,14 +101,32 @@ class PostController {
 //        return ResponseEntity.status(HttpStatus.NOT_FOUND).build()
 //
 //    }
+    data class PostDTO(val title: String,
+                       val body:String,
+                       val cid:Int?,
+                       val tagIdList:List<Int>
+                       )
+    @PostMapping
+    fun addPost(@RequestBody dto: PostDTO):Reply<Int> {
+        val postDO = PostDO()
+        postDO.title = dto.title
+        postDO.body = dto.body
+        postDO.cid = dto.cid
+        postService.savePost(postDO)
+
+        tagPostService.savePostTagRel(postDO.id!!, dto.tagIdList)
+
+        return Reply.success(postDO.id!!)
+    }
+
     @ApiOperation("add a new post")
-    @PostMapping("/posts")
-    fun writePost(title: String, md: MultipartFile, request: HttpServletRequest): ResponseEntity<Any?> {
+   // @PostMapping
+    fun writePost(title: String, md: MultipartFile): Reply<Unit> {
         val preSavePost = postService.addPost(title)
         preSavePost.body = saveMdFile(preSavePost.id!!, md)
                 ?: throw ApiException("Save md file failed")
         postService.saveBody(preSavePost)
-        return ResponseEntity.status(HttpStatus.OK).build()
+        return Reply.success()
     }
 
     private fun saveMdFile(id: Int, mdFile: MultipartFile): String? {
@@ -119,7 +142,7 @@ class PostController {
         return body
     }
     @ApiOperation("download markdown file.")
-    @GetMapping("/posts/download")
+    @GetMapping("/download")
     fun downloadMdFile(@RequestParam("pid") pid: Int, response: HttpServletResponse): String {
         val file = File("${postService.downloadMdPath}${File.separator}${pid}.md")
         if (!file.exists()) {
@@ -152,26 +175,26 @@ class PostController {
     }
 
     @ApiOperation("update post by id")
-    @PutMapping("/posts/{id}")
-    fun editPost(@PathVariable id: Int, title: String, md: MultipartFile): ResponseEntity<Unit> {
+    @PutMapping("/{id}")
+    fun editPost(@PathVariable id: Int, title: String, md: MultipartFile): Reply<Unit> {
         saveMdFile(id, md)
         val post = PostDO()
         post.title = title
         postService.updatePost(post, id)
         redisService.del(RedisConfig.REDIS_KEY_DATABASE + "post$id")
-        return ResponseEntity(HttpStatus.OK)
+        return Reply.success()
     }
 
     @ApiOperation("delete post by id")
-    @DeleteMapping("/posts/{id}")
-    fun deletePost(@PathVariable id: Int): ResponseEntity<Unit> {
-        postService.findForId(id) ?: return ResponseEntity(HttpStatus.NOT_FOUND)
+    @DeleteMapping("/{id}")
+    fun deletePost(@PathVariable id: Int):Reply<Unit> {
+        postService.findForId(id)
         try {
             redisService.del(RedisConfig.REDIS_KEY_DATABASE + "post$id")
         } catch (e: ConnectException) {
             e.printStackTrace()
         }
         postService.deletePost(id)
-        return ResponseEntity(HttpStatus.OK)
+        return Reply.success()
     }
 }

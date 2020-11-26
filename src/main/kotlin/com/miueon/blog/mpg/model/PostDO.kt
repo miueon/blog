@@ -40,6 +40,8 @@ class PostDO {
     @TableField(exist = false)
     var category:String? = null
 
+    @TableField(exist = false)
+    var tags:List<TagsDO>? = null
     constructor()
     constructor(id: Int, uid: Int, title: String, body: String, createdDate: LocalDateTime,
                 createdBy: String,

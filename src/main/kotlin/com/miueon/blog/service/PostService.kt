@@ -5,13 +5,17 @@ import com.baomidou.mybatisplus.extension.kotlin.KtUpdateWrapper
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page
 import com.miueon.blog.mpg.mapper.PostMapper
 import com.miueon.blog.mpg.model.PostDO
+import com.miueon.blog.util.ApiException
 
 import com.miueon.blog.util.Page4Navigator
+import io.swagger.annotations.Api
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
 import java.io.BufferedReader
 import java.io.File
 import java.io.InputStreamReader
+import java.lang.RuntimeException
 import java.nio.charset.StandardCharsets
 
 @Service
@@ -28,9 +32,15 @@ class PostService(@Autowired
     var downloadMdPath: String = "E:/0.PROJECT/fullstack/Blog/src/main/resources/static/md"
 
     fun findForId(id: Int): PostDO? {
-        val result = postMapper.selectById(id)
-        result.createdBy = userService.selectById(result.uid!!).name
-        return result
+        try {
+            val result = postMapper.selectById(id)
+            result.createdBy = userService.selectById(result.uid!!).name
+            return result
+        } catch (e: ApiException) {
+            throw e
+        } catch (e: RuntimeException) {
+            throw ApiException("the post id: $id is not found.", HttpStatus.BAD_REQUEST)
+        }
     }
 
     fun readBodyFromMdFile(id: Int): String {
@@ -67,6 +77,16 @@ class PostService(@Autowired
         post.uid = userService.getRawUser("crux").id
         postMapper.insert(post)
         return post
+    }
+
+    fun savePost(postDO: PostDO): PostDO {
+        try {
+            postDO.uid = userService.getRawUser("crux").id
+            postMapper.insert(postDO)
+            return postDO
+        } catch (e: RuntimeException) {
+            throw ApiException(e, HttpStatus.INTERNAL_SERVER_ERROR)
+        }
     }
 
     fun saveBody(originPost: PostDO) {

@@ -54,7 +54,7 @@ class CategoryController {
         if (StringUtils.isNotBlank(cName.name)) {
             categoryService.updateForId(id, cName.name!!)
         } else {
-            throw ApiException("category name shouldn't be empty",  HttpStatus.NOT_FOUND)
+            throw ApiException("category name shouldn't be empty",  HttpStatus.BAD_REQUEST)
         }
         return Reply.success()
     }

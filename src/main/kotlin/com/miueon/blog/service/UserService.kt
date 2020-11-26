@@ -17,6 +17,7 @@ import org.springframework.security.core.userdetails.UserDetailsService
 import org.springframework.security.crypto.factory.PasswordEncoderFactories
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
+import java.lang.RuntimeException
 import java.util.*
 
 @Service
@@ -70,7 +71,11 @@ constructor(var userMapper: UserMapper) : UserDetailsService {
     }
 
     fun selectById(id: Int): UserDO {
-        return userMapper.selectById(id)
+        try {
+            return userMapper.selectById(id)
+        } catch (e: RuntimeException) {
+            throw ApiException("User id: $id not exist.", HttpStatus.BAD_REQUEST)
+        }
     }
 
 

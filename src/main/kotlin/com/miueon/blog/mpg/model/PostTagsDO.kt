@@ -23,7 +23,6 @@ class PostTagsDO {
     var pid: Int? = null
     var tid: Int? = null
 
-
     override fun toString(): String {
         return "PostTagsDO{" +
                 "id=" + id +
