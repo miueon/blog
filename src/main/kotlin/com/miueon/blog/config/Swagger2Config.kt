@@ -1,5 +1,6 @@
 package com.miueon.blog.config
 
+import io.swagger.annotations.Api
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import springfox.documentation.builders.ApiInfoBuilder
@@ -19,8 +20,8 @@ class Swagger2Config {
                 .apiInfo(apiInfo())
                 .select()
                 .apis(RequestHandlerSelectors.basePackage("com.miueon.blog.controller"))
-                //为有@Api注解的Controller生成API文档
-//                .apis(RequestHandlerSelectors.withClassAnnotation(Api.class))
+//                为有@Api注解的Controller生成API文档
+//                .apis(RequestHandlerSelectors.withClassAnnotation(Api::class.java))
                 //为有@ApiOperation注解的方法生成API文档
 //                .apis(RequestHandlerSelectors.withMethodAnnotation(ApiOperation.class))
                 .paths(PathSelectors.any())

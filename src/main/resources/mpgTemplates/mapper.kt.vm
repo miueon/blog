@@ -1,0 +1,35 @@
+package ${package.Mapper}
+
+import ${package.Entity}.${entity}
+import ${superMapperClassPackage}
+
+/**
+ * <p>
+ * $!{table.comment} Mapper 接口
+ * </p>
+ *
+ * @author ${author}
+ * @since ${date}
+ */
+interface ${table.mapperName} : ${superMapperClass}<${entity}>
+
+##```
+##
+##### service.kt.vm
+##```v
+##package ${package.Service}
+##
+##import ${package.Entity}.${entity}
+##import ${superServiceClassPackage}
+##
+##/**
+## * <p>
+## * $!{table.comment} 服务类
+## * </p>
+## *
+## * @author ${author}
+## * @since ${date}
+## */
+##
+##interface ${table.serviceName} : ${superServiceClass}<${entity}>
+

@@ -2,14 +2,11 @@ package com.miueon.blog.config
 
 import org.springframework.context.annotation.Configuration
 import org.springframework.scheduling.concurrent.ConcurrentTaskExecutor
-import org.springframework.web.servlet.config.annotation.AsyncSupportConfigurer
-import org.springframework.web.servlet.config.annotation.CorsRegistry
-import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry
-import org.springframework.web.servlet.config.annotation.WebMvcConfigurationSupport
+import org.springframework.web.servlet.config.annotation.*
 import java.util.concurrent.Executors
 
 @Configuration
-class CORSConfiguration : WebMvcConfigurationSupport() {
+class CORSConfiguration : WebMvcConfigurer {
     override fun addCorsMappings(rgistry: CorsRegistry) {
         rgistry.addMapping("/**")
                 .allowedOrigins("*")
@@ -18,7 +15,13 @@ class CORSConfiguration : WebMvcConfigurationSupport() {
     }
 
     override fun addResourceHandlers(registry: ResourceHandlerRegistry) {
+        // to solve static access
         registry.addResourceHandler("/**").addResourceLocations("classpath:/static/")
-        super.addResourceHandlers(registry)
+        // 解决 SWAGGER 404报错
+        registry.addResourceHandler("/swagger-ui.html")
+                .addResourceLocations("classpath:/META-INF/resources/")
+
+        registry.addResourceHandler("/webjars/**")
+                .addResourceLocations("classpath:/META-INF/resources/webjars/")
     }
 }

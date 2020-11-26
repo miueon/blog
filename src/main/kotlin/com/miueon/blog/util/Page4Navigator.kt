@@ -27,27 +27,30 @@ class Page4Navigator<T> {
 
     // todo: write a test
     fun calcNavigatePageNums() {
-        var nums:MutableList<Long> = ArrayList()
+        val nums:MutableList<Long> = ArrayList()
         if (totalPages <= navigatePages) {
             for (i in 1..totalPages) {
                 nums.add(i)
             }
         } else {
             var startNum = current - navigatePages/2
-            var endNum = current + navigatePages/2
-            if (startNum < 1) {
-                startNum = 1
-                for (i in 1..navigatePages) {
-                    nums.add(i.toLong())
+            val endNum = current + navigatePages/2
+            when {
+                startNum < 1 -> {
+                    for (i in 1..navigatePages) {
+                        nums.add(i.toLong())
+                    }
                 }
-            } else if (endNum > totalPages) {
-                startNum = totalPages + 1 - navigatePages
-                for (i in 0 until navigatePages) {
-                    nums.add(startNum++)
+                endNum > totalPages -> {
+                    startNum = totalPages + 1 - navigatePages
+                    for (i in 0 until navigatePages) {
+                        nums.add(startNum++)
+                    }
                 }
-            } else {
-                for (i in 0 until navigatePages) {
-                    nums.add(startNum++)
+                else -> {
+                    for (i in 0 until navigatePages) {
+                        nums.add(startNum++)
+                    }
                 }
             }
         }

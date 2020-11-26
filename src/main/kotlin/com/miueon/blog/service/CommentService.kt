@@ -13,9 +13,9 @@ import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.lang.IllegalArgumentException
 
-@Service
+//@Service
 class CommentService
-@Autowired
+//@Autowired
 constructor(
         val commentMapper: CommentMapper,
         val postMapper: PostMapper,
@@ -45,21 +45,21 @@ constructor(
         }
     }
 
-    fun registerComment(comm: comment, username: String): comment? {
-        val postInctx: post = findPostByCid(comm.pid ?: throw BadRequestException("request without post id"))
-                ?: throw BadRequestException("post doesnt exist in database")
-        val usr = userService.getUserByUsername(username)
-
-        val newComment = comment(
-                content = comm.content,
-                pid = comm.pid,
-                post = postInctx,
-                uid = usr.id
-        )
-        commentMapper.insert(newComment)
-        newComment.user = usr
-        return newComment
-    }
+//    fun registerComment(comm: comment, username: String): comment? {
+//        val postInctx: post = findPostByCid(comm.pid ?: throw BadRequestException("request without post id"))
+//                ?: throw BadRequestException("post doesnt exist in database")
+//        val usr = userService.getUserByUsername(username)
+//
+//        val newComment = comment(
+//                content = comm.content,
+//                pid = comm.pid,
+//                post = postInctx,
+//                uid = usr.id
+//        )
+//        commentMapper.insert(newComment)
+//        newComment.user = usr
+//        return newComment
+//    }
 
     fun deleteComment(id: Long): Unit {
         commentMapper.selectById(id)?.let {
@@ -67,7 +67,7 @@ constructor(
         }
     }
 
-    fun deleteCommentByPostId(id: Long): Unit {
+    fun deleteCommentByPostId(id: Int): Unit {
         val ktQueryWrapper = KtQueryWrapper(comment::class.java)
         ktQueryWrapper.eq(comment::pid, id)
         commentMapper.delete(ktQueryWrapper)

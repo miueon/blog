@@ -3,10 +3,9 @@ package com.miueon.blog.service
 import com.baomidou.mybatisplus.extension.kotlin.KtQueryWrapper
 import com.baomidou.mybatisplus.extension.kotlin.KtUpdateWrapper
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page
-import com.miueon.blog.mapper.PostMapper
-import com.miueon.blog.mapper.UserMapper
-import com.miueon.blog.pojo.post
-import com.miueon.blog.util.ApiException
+import com.miueon.blog.mpg.mapper.PostMapper
+import com.miueon.blog.mpg.model.PostDO
+
 import com.miueon.blog.util.Page4Navigator
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
@@ -19,27 +18,22 @@ import java.nio.charset.StandardCharsets
 class PostService(@Autowired
                   var postMapper: PostMapper,
                   @Autowired
-                  var userMapper: UserMapper,
-                  @Autowired
                   var userService: UserService,
-                  @Autowired
-                  var commentService: CommentService,
+//                  @Autowired
+//                  var commentService: CommentService,
                   @Autowired
                   var postEService: PostEService
 ) {
 
-    var downloadMdPath :String = "E:/0.PROJECT/fullstack/Blog/src/main/resources/static/md"
+    var downloadMdPath: String = "E:/0.PROJECT/fullstack/Blog/src/main/resources/static/md"
 
-    fun findForId(id: Long): post? {
+    fun findForId(id: Int): PostDO? {
         val result = postMapper.selectById(id)
-
-        result.user = userMapper.selectById(result?.uid)
-        result.user?.password = null
-        result.userName = result.user?.name
+        result.createdBy = userService.selectById(result.uid!!).name
         return result
     }
 
-    fun readBodyFromMdFile(id: Long): String {
+    fun readBodyFromMdFile(id: Int): String {
         val file = File("$downloadMdPath${File.separator}${id}.md")
 
         val reader = BufferedReader(InputStreamReader(file.inputStream(),
@@ -62,30 +56,28 @@ class PostService(@Autowired
     }
 
 
-    fun findForIds(page: Page<post>, id: List<Long>): List<post> {
-        val result = postMapper.selectByIDs(page, id)
-        return result.records
+    fun findForIds(ids: List<Int>): List<PostDO> {
+        return postMapper.selectBatchIds(ids)
     }
 
-    fun addPost(title: String): post {
-        val post = post()
+    // todo: add category support
+    fun addPost(title: String): PostDO {
+        val post = PostDO()
         post.title = title
-        val user = userService.getRawUser("crux")
-        post.uid = user?.id
+        post.uid = userService.getRawUser("crux").id
         postMapper.insert(post)
         return post
     }
 
-    fun saveBody(originPost: post) {
+    fun saveBody(originPost: PostDO) {
         postMapper.updateById(originPost)
     }
 
 
-    fun updatePost(p: post, pid: Long): Int {
-        val originalPost = findForId(pid)
-
-        val ktUpdateWrapper = KtUpdateWrapper(post::class.java)
-        ktUpdateWrapper.set(post::title, p.title).eq(post::id, pid)
+    fun updatePost(p: PostDO, pid: Int): Int {
+        val originalPost = postMapper.selectById(pid)
+        val ktUpdateWrapper = KtUpdateWrapper(PostDO::class.java)
+        ktUpdateWrapper.set(PostDO::title, p.title).eq(PostDO::id, pid)
         val result = postMapper.update(originalPost, ktUpdateWrapper)
         // update to ES
 //        val postes = postE()
@@ -93,52 +85,48 @@ class PostService(@Autowired
 //        postes.content = p.body
 //        postes.id = pid.toString()
 //        postEService.updatePostE(postes)
-
         return result
     }
 
 
-    fun findAllByOrderByCreatedDateDescPage(page: Page<post>, navigatePages:Int): Page4Navigator<post> {
-        val ktQueryWrapper = KtQueryWrapper<post>(post::class.java)
-        ktQueryWrapper.orderByDesc(post::createdDate)
+    fun findAllByOrderByCreatedDateDescPage(page: Page<PostDO>, navigatePages: Int): Page4Navigator<PostDO> {
+        val ktQueryWrapper = KtQueryWrapper<PostDO>(PostDO::class.java)
+        ktQueryWrapper.orderByDesc(PostDO::createdDate)
         val result = postMapper.selectPage(page, ktQueryWrapper)
         result.records.map {
-            it.user = userMapper.selectById(it.uid)
-            it.userName = it.user?.name
-            it.user = null
+            it.createdBy = userService.selectById(it.uid!!).name
         }
         return Page4Navigator(result, navigatePages)
     }
 
-    fun findByKeyword(keyword: String): List<post>? {
-        val pesResult = postEService.search(keyword)
-        if (pesResult.isNotEmpty()) {
-            val ids = pesResult.map { it.id?.toLong()!! }
-            val page = Page<post>(0, 10)
-            if (ids.isNotEmpty()) {
-                val result = findForIds(page, ids)
-                return result
-            }
-        }
-        val ktQueryWrapper = KtQueryWrapper(post::class.java)
-        ktQueryWrapper.like(post::title, keyword)
-        val page = Page<post>(0, 10)
-        val result = postMapper.selectPage(page, ktQueryWrapper).records
-        if (result.isEmpty()) {
-            return null
-        }
-        result.map {
-            it.user = userMapper.selectById(it.uid)
-            it.userName = it.user?.name
-        }
-        return result
-    }
+//    fun findByKeyword(keyword: String): List<PostDTO>? {
+//        val pesResult = postEService.search(keyword)
+//        if (pesResult.isNotEmpty()) {
+//            val ids = pesResult.map { it.id?.toLong()!! }
+//            if (ids.isNotEmpty()) {
+//                val result = findForIds(ids)
+//                return result
+//            }
+//        }
+//        val ktQueryWrapper = KtQueryWrapper(PostDO::class.java)
+//        ktQueryWrapper.like(PostDO::title, keyword)
+//        val page = Page<PostDO>(0, 10)
+//        val result = postMapper.selectPage(page, ktQueryWrapper).records
+//        if (result.isEmpty()) {
+//            return null
+//        }
+//        result.map {
+//            it.user = userService.selectById(it.uid)
+//            it.userName = it.user?.name
+//        }
+//        return result
+//    }
 
 
-    fun deletePost(id: Long) {
-        commentService.deleteCommentByPostId(id)
+    fun deletePost(id: Int) {
+//        commentService.deleteCommentByPostId(id)
         postMapper.deleteById(id)
         // delete in ES
-       // postEService.deletePostE(id.toString())
+        // postEService.deletePostE(id.toString())
     }
 }

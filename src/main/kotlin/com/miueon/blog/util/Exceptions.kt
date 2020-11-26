@@ -8,19 +8,22 @@ import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler
 import java.lang.RuntimeException
 import java.util.HashMap
-import com.miueon.blog.util.ResultCode
 
 class ApiException : RuntimeException {
     var httpStatus: HttpStatus
-    constructor(cause: Throwable?, code: ResultCode) : super(cause) {
-        this.httpStatus = HttpStatus.valueOf(code.code)
+    constructor(cause: Throwable?, status: HttpStatus) : super(cause) {
+        this.httpStatus = status
     }
-    constructor(message: String?, code: ResultCode) : super(message) {
-        this.httpStatus = HttpStatus.valueOf(code.code)
+    constructor(message: String?, status: HttpStatus) : super(message) {
+        this.httpStatus = status
     }
     constructor(message: String?) : super(message) {
         httpStatus = HttpStatus.INTERNAL_SERVER_ERROR
     }
+    constructor(status: HttpStatus) : super(status.toString()){
+        httpStatus = status
+    }
+
     companion object {
         private const val serialVersionUID = -4642753456084299295L
     }
@@ -30,17 +33,19 @@ class ApiException : RuntimeException {
 class ApiExceptionHandler : ResponseEntityExceptionHandler() {
     @ExceptionHandler(ApiException::class)
     fun handleApiException(e: ApiException): ResponseEntity<Any?> {
-        return when (e.httpStatus.value()) {
-            ResultCode.ERROR_PATH.code ->
-                ResponseEntity(Reply.errorPath(e.message ?: ResultCode.ERROR_PATH.msg), e.httpStatus)
-            ResultCode.ERROR_SERVER.code ->
-                ResponseEntity(Reply.errorServer(e.message ?: ResultCode.ERROR_SERVER.msg), e.httpStatus)
+        return when (e.httpStatus) {
+            HttpStatus.NOT_FOUND ->
+                ResponseEntity(Reply.error(e.message ?: e.httpStatus.toString()), e.httpStatus)
+            HttpStatus.INTERNAL_SERVER_ERROR ->
+                ResponseEntity(Reply.error(e.message ?: e.httpStatus.toString()), e.httpStatus)
+            HttpStatus.BAD_REQUEST ->
+                ResponseEntity(Reply.error(e.message ?: e.httpStatus.toString()), e.httpStatus)
             else -> handleException(e)
         }
     }
     @ExceptionHandler(Exception::class)
     fun handleException(e: Exception): ResponseEntity<Any?> {
-        val reply = Reply.errorServer(e.message ?: HttpStatus.INTERNAL_SERVER_ERROR.toString())
+        val reply = Reply.error(HttpStatus.INTERNAL_SERVER_ERROR.toString())
         return ResponseEntity(reply, HttpStatus.INTERNAL_SERVER_ERROR)
     }
 }
