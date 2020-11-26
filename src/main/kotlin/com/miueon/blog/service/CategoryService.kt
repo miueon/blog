@@ -11,13 +11,14 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import java.lang.RuntimeException
 
 interface CategoryService {
     fun getCategories(page: Page<CategoryDO>, navigatePages: Int): Page4Navigator<CategoryDO>
-    fun findForId(id: Long): CategoryDO
+    fun findForId(id: Int): CategoryDO
     fun saveCategory(name: String): CategoryDO
-    fun updateForId(id: Long, name: String): Int
-    fun deleteForId(id: Long)
+    fun updateForId(id: Int, name: String)
+    fun deleteForId(id: Int)
 }
 
 @Service
@@ -32,13 +33,20 @@ class CategoryServiceImpl : CategoryService {
         return Page4Navigator(result, navigatePages)
     }
 
-    override fun findForId(id: Long): CategoryDO = categoryMapper.selectById(id)
+    override fun findForId(id: Int): CategoryDO {
+        try {
+            return categoryMapper.selectById(id)
+        } catch (e: RuntimeException) {
+            throw ApiException("the id: $id is not in database")
+        }
+    }
 
     private fun findByName(name: String): CategoryDO? {
         val ktQueryWrapper = KtQueryWrapper(CategoryDO::class.java)
         ktQueryWrapper.eq(CategoryDO::name, name)
         return categoryMapper.selectOne(ktQueryWrapper)
     }
+
     //    @Transactional(rollbackFor = {RuntimeException.class, IOException.class})
     @Transactional
     override fun saveCategory(name: String): CategoryDO {
@@ -52,16 +60,28 @@ class CategoryServiceImpl : CategoryService {
     }
 
     @Transactional
-    override fun updateForId(id: Long, name: String): Int {
+    override fun updateForId(id: Int, name: String) {
         val old = findForId(id)
-        val ktUpdateWrapper = KtUpdateWrapper(CategoryDO::class.java)
-        ktUpdateWrapper.set(CategoryDO::name, name).eq(CategoryDO::id, id)
-        val result = categoryMapper.update(old, ktUpdateWrapper)
-        return result
+        if (findByName(name) != null) {
+            throw ApiException("category already exist.", HttpStatus.BAD_REQUEST)
+        }
+        try {
+            val ktUpdateWrapper = KtUpdateWrapper(CategoryDO::class.java)
+            ktUpdateWrapper.set(CategoryDO::name, name).eq(CategoryDO::id, id)
+            categoryMapper.update(old, ktUpdateWrapper)
+        } catch (e: RuntimeException) {
+            throw ApiException(e, HttpStatus.INTERNAL_SERVER_ERROR)
+        }
+
     }
 
     @Transactional
-    override fun deleteForId(id: Long) {
-        categoryMapper.deleteById(id)
+    override fun deleteForId(id: Int) {
+        findForId(id)
+        try {
+            categoryMapper.deleteById(id)
+        } catch (e: RuntimeException) {
+            throw ApiException(e, HttpStatus.INTERNAL_SERVER_ERROR)
+        }
     }
 }

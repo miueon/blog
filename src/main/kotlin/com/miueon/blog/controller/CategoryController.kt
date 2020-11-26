@@ -3,7 +3,6 @@ package com.miueon.blog.controller
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page
 import com.miueon.blog.mpg.model.CategoryDO
-import com.miueon.blog.pojo.category
 import com.miueon.blog.service.CategoryService
 import com.miueon.blog.util.ApiException
 import com.miueon.blog.util.Page4Navigator
@@ -28,12 +27,13 @@ class CategoryController {
             @RequestParam(value = "start", defaultValue = "1") start:Int,
             @RequestParam(value = "size", defaultValue = "10") size:Int
     ): ResponseEntity<Reply<Page4Navigator<CategoryDO>>> {
-        val categories = categoryService.getCategories(Page(start.toLong(), size.toLong()), 5)
+        val categories = categoryService.getCategories(Page(start.toLong(),
+                size.toLong()), 5)
         return ResponseEntity(Reply.success(categories), HttpStatus.OK)
     }
 
     @GetMapping("/{id}")
-    fun getCategory(@PathVariable id:Long):ResponseEntity<Reply<CategoryDO>> {
+    fun getCategory(@PathVariable id:Int):ResponseEntity<Reply<CategoryDO>> {
         val category = categoryService.findForId(id)
         return ResponseEntity(Reply.success(category), HttpStatus.OK)
     }
@@ -50,9 +50,9 @@ class CategoryController {
     }
 
     @PutMapping("/{id}")
-    fun editCategory(@PathVariable id:Long, name:String):Reply<Unit> {
-        if (StringUtils.isNotBlank(name)) {
-            categoryService.updateForId(id, name)
+    fun editCategory(@PathVariable id:Int,@RequestBody cName:CategoryName):Reply<Unit> {
+        if (StringUtils.isNotBlank(cName.name)) {
+            categoryService.updateForId(id, cName.name!!)
         } else {
             throw ApiException("category name shouldn't be empty",  HttpStatus.NOT_FOUND)
         }
@@ -60,7 +60,7 @@ class CategoryController {
     }
 
     @DeleteMapping("/{id}")
-    fun deleteCategory(@PathVariable id: Long): Reply<Unit> {
+    fun deleteCategory(@PathVariable id: Int): Reply<Unit> {
         categoryService.deleteForId(id)
         return Reply.success()
     }
