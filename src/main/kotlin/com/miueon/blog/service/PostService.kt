@@ -125,9 +125,12 @@ class PostService(@Autowired
         try {
             p.modifiedDate = LocalDateTime.now()
             val ktUpdateWrapper = KtUpdateWrapper(PostDO::class.java).eq(PostDO::id, pid)
-            categoryMapper.selectByPrimaryKey(p.cid)
-                    ?: throw ApiException("the category id: ${p.cid} is not exist.",
-                            HttpStatus.BAD_REQUEST)
+            if (p.cid != null) {
+                categoryMapper.selectByPrimaryKey(p.cid)
+                        ?: throw ApiException("the category id: ${p.cid} is not exist.",
+                                HttpStatus.BAD_REQUEST)
+            }
+
             val result = postMapper.update(p, ktUpdateWrapper)
             // update to ES
 //        val postes = postE()
