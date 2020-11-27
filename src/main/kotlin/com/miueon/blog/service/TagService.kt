@@ -16,6 +16,7 @@ import java.lang.RuntimeException
 interface TagService {
     fun getTags(page: Page<TagsDO>, navigatePages: Int): Page4Navigator<TagsDO>
     fun findForId(id: Int): TagsDO
+    fun selectBatchForIds(ids:List<Int>):List<TagsDO>
     fun saveTag(name: String): TagsDO
     fun updateForId(id: Int, name: String)
     fun deleteForId(id: Int)
@@ -25,11 +26,18 @@ interface TagService {
 class TagServiceImpl : TagService {
     @Autowired
     lateinit var tagsMapper: TagsMapper
+    @Autowired
+    lateinit var tagPostService: TagPostService
+
     override fun getTags(page: Page<TagsDO>, navigatePages: Int): Page4Navigator<TagsDO> {
         val ktQueryWrapper = KtQueryWrapper(TagsDO::class.java)
         ktQueryWrapper.orderByAsc(TagsDO::id)
         val result = tagsMapper.selectPage(page, ktQueryWrapper)
         return Page4Navigator(result, navigatePages)
+    }
+
+    override fun selectBatchForIds(ids: List<Int>): List<TagsDO> {
+        return tagsMapper.selectBatchIds(ids)
     }
 
     override fun findForId(id: Int): TagsDO {
@@ -78,6 +86,7 @@ class TagServiceImpl : TagService {
     override fun deleteForId(id: Int) {
         findForId(id)
         try {
+            tagPostService.deleteByTid(id)
             tagsMapper.deleteById(id)
         } catch (e: RuntimeException) {
             throw ApiException(e, HttpStatus.INTERNAL_SERVER_ERROR)

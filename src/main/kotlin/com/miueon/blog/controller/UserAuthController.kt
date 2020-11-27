@@ -1,7 +1,7 @@
 package com.miueon.blog.controller
 
 import com.miueon.blog.pojo.user
-import com.miueon.blog.pojo.userDto
+
 import com.miueon.blog.service.UserService
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
@@ -18,6 +18,9 @@ import kotlin.streams.toList
 @RestController
 @RequestMapping("/auth")
 class UserAuthController{
+
+    data class userDto(var isAdmin:Boolean? = null, var name:String? = null)
+
     @Autowired
     lateinit var userService: UserService
 

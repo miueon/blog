@@ -61,7 +61,10 @@ class PostController {
 //           // redisService[RedisConfig.REDIS_KEY_DATABASE + "post$id"] = tmp
 //            post = tmp
 //        }
-        val post = postService.findForId(id) ?: throw ApiException("post not exist", HttpStatus.NOT_FOUND)
+        val post = postService.findForId(id)
+        post.view += 1
+        postService.updatePost(post, post.id!!)
+        // todo: replace this with spring-boot schedule & redis. and check whether the guest is admin
         return ResponseEntity(Reply.success(post), HttpStatus.OK)
     }
 
@@ -174,8 +177,8 @@ class PostController {
         return "download success"
     }
 
-    @ApiOperation("update post by id")
-    @PutMapping("/{id}")
+    //@ApiOperation("update post by id")
+   // @PutMapping("/{id}")
     fun editPost(@PathVariable id: Int, title: String, md: MultipartFile): Reply<Unit> {
         saveMdFile(id, md)
         val post = PostDO()
@@ -185,8 +188,23 @@ class PostController {
         return Reply.success()
     }
 
+    @ApiOperation("update post by id")
+    @PutMapping("/{id}")
+    @ResponseBody
+    fun updatePost(@PathVariable id: Int,@RequestBody dto: PostDTO):Reply<Unit> {
+        val post = postService.findForId(id)
+
+        post.title = dto.title
+        post.body = dto.body
+        post.cid = dto.cid
+        postService.updatePost(post, id)
+        tagPostService.savePostTagRel(id, dto.tagIdList)
+        return Reply.success()
+    }
+
     @ApiOperation("delete post by id")
     @DeleteMapping("/{id}")
+    @ResponseBody
     fun deletePost(@PathVariable id: Int):Reply<Unit> {
         postService.findForId(id)
         try {
@@ -194,6 +212,7 @@ class PostController {
         } catch (e: ConnectException) {
             e.printStackTrace()
         }
+        tagPostService.deleteByPid(id)
         postService.deletePost(id)
         return Reply.success()
     }

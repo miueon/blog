@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.annotation.TableName
 import com.baomidou.mybatisplus.annotation.IdType
 import com.baomidou.mybatisplus.annotation.TableField
 import com.baomidou.mybatisplus.annotation.TableId
+import com.fasterxml.jackson.annotation.JsonIgnore
 import com.miueon.blog.pojo.user
 import io.swagger.annotations.ApiModel
 import io.swagger.annotations.ApiModelProperty
@@ -33,12 +34,14 @@ class PostDO {
     var createdDate: LocalDateTime =  LocalDateTime.now()
     @TableField("modifiedDate")
     var modifiedDate: LocalDateTime = LocalDateTime.now()
+    @JsonIgnore
     var cid: Int? = null
+    var view: Int = 0
 
     @TableField(exist = false)
     var createdBy: String? =null
     @TableField(exist = false)
-    var category:String? = null
+    var category:CategoryDO? = null
 
     @TableField(exist = false)
     var tags:List<TagsDO>? = null

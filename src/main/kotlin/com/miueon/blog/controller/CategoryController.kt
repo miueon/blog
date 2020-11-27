@@ -4,6 +4,7 @@ package com.miueon.blog.controller
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page
 import com.miueon.blog.mpg.model.CategoryDO
 import com.miueon.blog.service.CategoryService
+import com.miueon.blog.service.PostService
 import com.miueon.blog.util.ApiException
 import com.miueon.blog.util.Page4Navigator
 import com.miueon.blog.util.Reply
@@ -21,6 +22,8 @@ import org.springframework.web.bind.annotation.*
 class CategoryController {
     @Autowired
     lateinit var categoryService: CategoryService
+    @Autowired
+    lateinit var postService: PostService
     private var logger = LoggerFactory.getLogger(this.javaClass)
     @GetMapping
     fun getCategories(
@@ -37,6 +40,8 @@ class CategoryController {
         val category = categoryService.findForId(id)
         return ResponseEntity(Reply.success(category), HttpStatus.OK)
     }
+
+
 
     data class CategoryName(val name: String?)
     @PostMapping

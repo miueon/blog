@@ -1,7 +1,7 @@
 package com.miueon.blog.controller
 
 import com.miueon.blog.pojo.comment
-import com.miueon.blog.pojo.userDto
+
 import com.miueon.blog.service.CommentService
 
 import org.slf4j.Logger

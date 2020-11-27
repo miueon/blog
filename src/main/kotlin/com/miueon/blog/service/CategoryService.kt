@@ -4,7 +4,9 @@ import com.baomidou.mybatisplus.extension.kotlin.KtQueryWrapper
 import com.baomidou.mybatisplus.extension.kotlin.KtUpdateWrapper
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page
 import com.miueon.blog.mpg.mapper.CategoryMapper
+import com.miueon.blog.mpg.mapper.PostMapper
 import com.miueon.blog.mpg.model.CategoryDO
+import com.miueon.blog.mpg.model.PostDO
 import com.miueon.blog.util.ApiException
 import com.miueon.blog.util.Page4Navigator
 import org.springframework.beans.factory.annotation.Autowired
@@ -25,7 +27,8 @@ interface CategoryService {
 class CategoryServiceImpl : CategoryService {
     @Autowired
     lateinit var categoryMapper: CategoryMapper
-
+    @Autowired
+    lateinit var postMapper: PostMapper
     override fun getCategories(page: Page<CategoryDO>, navigatePages: Int): Page4Navigator<CategoryDO> {
         val ktQueryWrapper = KtQueryWrapper(CategoryDO::class.java)
         ktQueryWrapper.orderByAsc(CategoryDO::id)
@@ -79,7 +82,28 @@ class CategoryServiceImpl : CategoryService {
     override fun deleteForId(id: Int) {
         findForId(id)
         try {
+            obliterateCategoryInfo(id)
             categoryMapper.deleteById(id)
+        } catch (e: RuntimeException) {
+            throw ApiException(e, HttpStatus.INTERNAL_SERVER_ERROR)
+        }
+    }
+
+
+    @Transactional
+    fun obliterateCategoryInfo(cid: Int) {
+        try {
+            val queryWrapper = KtQueryWrapper(PostDO::class.java)
+            queryWrapper.eq(PostDO::cid, cid)
+            val oldList = postMapper.selectList(queryWrapper)
+            oldList.forEach { it.cid = null }
+            val ktUpdateWrapper = KtUpdateWrapper(PostDO::class.java)
+
+            oldList.forEach {
+                ktUpdateWrapper.set(PostDO::cid, null)
+                    .eq(PostDO::id, it.id)
+                postMapper.update(it, ktUpdateWrapper)
+            }
         } catch (e: RuntimeException) {
             throw ApiException(e, HttpStatus.INTERNAL_SERVER_ERROR)
         }

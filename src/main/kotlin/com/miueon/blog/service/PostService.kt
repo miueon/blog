@@ -3,7 +3,9 @@ package com.miueon.blog.service
 import com.baomidou.mybatisplus.extension.kotlin.KtQueryWrapper
 import com.baomidou.mybatisplus.extension.kotlin.KtUpdateWrapper
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page
+import com.miueon.blog.mpg.mapper.CategoryMapper
 import com.miueon.blog.mpg.mapper.PostMapper
+import com.miueon.blog.mpg.model.CategoryDO
 import com.miueon.blog.mpg.model.PostDO
 import com.miueon.blog.util.ApiException
 
@@ -12,29 +14,43 @@ import io.swagger.annotations.Api
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
 import java.io.BufferedReader
 import java.io.File
 import java.io.InputStreamReader
 import java.lang.RuntimeException
 import java.nio.charset.StandardCharsets
+import java.time.LocalDateTime
 
 @Service
 class PostService(@Autowired
                   var postMapper: PostMapper,
                   @Autowired
                   var userService: UserService,
+                  @Autowired
+                  var tagPostService: TagPostService,
 //                  @Autowired
 //                  var commentService: CommentService,
+                  @Autowired
+                  var categoryMapper: CategoryMapper,
                   @Autowired
                   var postEService: PostEService
 ) {
 
     var downloadMdPath: String = "E:/0.PROJECT/fullstack/Blog/src/main/resources/static/md"
 
-    fun findForId(id: Int): PostDO? {
+    fun findForId(id: Int): PostDO {
         try {
             val result = postMapper.selectById(id)
+
             result.createdBy = userService.selectById(result.uid!!).name
+
+            result.category = when (result.cid) {
+                null -> CategoryDO(0, "unClassified")
+                else -> categoryMapper.selectById(result.cid!!)
+            }
+
+            result.tags = tagPostService.getTagListByPostId(result.id!!)
             return result
         } catch (e: ApiException) {
             throw e
@@ -79,11 +95,22 @@ class PostService(@Autowired
         return post
     }
 
+    @Transactional
     fun savePost(postDO: PostDO): PostDO {
         try {
             postDO.uid = userService.getRawUser("crux").id
+            val ktQueryWrapper = KtQueryWrapper(PostDO::class.java)
+            ktQueryWrapper.eq(PostDO::title, postDO.title)
+            if (postMapper.selectCount(ktQueryWrapper) > 0) {
+                throw ApiException(
+                        "duplicated title for ${postDO.title}",
+                        HttpStatus.BAD_REQUEST
+                )
+            }
             postMapper.insert(postDO)
             return postDO
+        } catch (e: ApiException) {
+            throw  e
         } catch (e: RuntimeException) {
             throw ApiException(e, HttpStatus.INTERNAL_SERVER_ERROR)
         }
@@ -93,28 +120,42 @@ class PostService(@Autowired
         postMapper.updateById(originPost)
     }
 
-
+    @Transactional
     fun updatePost(p: PostDO, pid: Int): Int {
-        val originalPost = postMapper.selectById(pid)
-        val ktUpdateWrapper = KtUpdateWrapper(PostDO::class.java)
-        ktUpdateWrapper.set(PostDO::title, p.title).eq(PostDO::id, pid)
-        val result = postMapper.update(originalPost, ktUpdateWrapper)
-        // update to ES
+        try {
+            p.modifiedDate = LocalDateTime.now()
+            val ktUpdateWrapper = KtUpdateWrapper(PostDO::class.java).eq(PostDO::id, pid)
+            categoryMapper.selectByPrimaryKey(p.cid)
+                    ?: throw ApiException("the category id: ${p.cid} is not exist.",
+                            HttpStatus.BAD_REQUEST)
+            val result = postMapper.update(p, ktUpdateWrapper)
+            // update to ES
 //        val postes = postE()
 //        postes.title = p.title
 //        postes.content = p.body
 //        postes.id = pid.toString()
 //        postEService.updatePostE(postes)
-        return result
+            return result
+        } catch (e: ApiException) {
+            throw  e
+        } catch (e: RuntimeException) {
+            throw ApiException(e, HttpStatus.INTERNAL_SERVER_ERROR)
+        }
+
     }
 
 
     fun findAllByOrderByCreatedDateDescPage(page: Page<PostDO>, navigatePages: Int): Page4Navigator<PostDO> {
-        val ktQueryWrapper = KtQueryWrapper<PostDO>(PostDO::class.java)
+        val ktQueryWrapper = KtQueryWrapper(PostDO::class.java)
         ktQueryWrapper.orderByDesc(PostDO::createdDate)
         val result = postMapper.selectPage(page, ktQueryWrapper)
         result.records.map {
             it.createdBy = userService.selectById(it.uid!!).name
+            it.category = when (it.cid) {
+                null -> CategoryDO(0, "unClassified")
+                else -> categoryMapper.selectByPrimaryKey(it.cid!!)
+            }
+            it.tags = tagPostService.getTagListByPostId(it.id!!)
         }
         return Page4Navigator(result, navigatePages)
     }
@@ -142,11 +183,19 @@ class PostService(@Autowired
 //        return result
 //    }
 
-
+    @Transactional
     fun deletePost(id: Int) {
 //        commentService.deleteCommentByPostId(id)
-        postMapper.deleteById(id)
+        try {
+            tagPostService.deleteByPid(id)
+            postMapper.deleteById(id)
+        } catch (e: RuntimeException) {
+            throw ApiException(e, HttpStatus.INTERNAL_SERVER_ERROR)
+        }
+
         // delete in ES
         // postEService.deletePostE(id.toString())
     }
+
+
 }
