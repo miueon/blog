@@ -28,10 +28,16 @@ class CategoryController {
     @GetMapping
     fun getCategories(
             @RequestParam(value = "start", defaultValue = "1") start:Int,
-            @RequestParam(value = "size", defaultValue = "10") size:Int
+            @RequestParam(value = "size", defaultValue = "20") size:Int
     ): ResponseEntity<Reply<Page4Navigator<CategoryDO>>> {
         val categories = categoryService.getCategories(Page(start.toLong(),
                 size.toLong()), 5)
+        categories.content?.forEach{
+            it.postCount = postService.getPostCountByCid(it.id!!)
+        }
+        val temp = CategoryDO(0, "unClassified")
+        temp.postCount = postService.getPostCountByCid(0)
+        categories.content?.add(temp)
         return ResponseEntity(Reply.success(categories), HttpStatus.OK)
     }
 

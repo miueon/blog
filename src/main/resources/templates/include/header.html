@@ -31,6 +31,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.2/highlight.min.js"></script>
   <script src="https://cdn.bootcss.com/highlightjs-line-numbers.js/2.7.0/highlightjs-line-numbers.min.js"></script>
 
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
   <style>
       .codehilite {
           padding: 0;
@@ -144,6 +145,35 @@
         token = localStorage.getItem('__AUTH__')
       }
       return `Bearer ${token}`;
+    }
+
+    let tag_category_aside = {
+      data: function () {
+        return {
+          tagUrl: "api/tag",
+          categoryUrl: "api/category",
+          categories: [],
+          tags: [],
+          reply: {
+            code: 0,
+            msg: ""
+          }
+        }
+      },
+      methods: {
+        getCategories: function (target) {
+          axios.get(this.categoryUrl).then(function (response) {
+
+            target.categories = response.data.payLoad.content
+          })
+        },
+        getTags: function (target) {
+          axios.get(this.tagUrl).then(function (response) {
+
+            target.tags = response.data.payLoad.content
+          })
+        }
+      }
     }
 
     let mixin_auth = {

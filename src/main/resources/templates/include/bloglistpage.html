@@ -1,14 +1,19 @@
 <script src="https://cdn.jsdelivr.net/npm/vue@2.6.12"></script>
 <div class="container content-body" xmlns:th="http://www.thymeleaf.org" th:fragment="html">
   <script>
+    let bloglist
     $(function () {
-      let bloglist = new Vue({
+      bloglist = new Vue({
         el: "#workingArea",
-        mixins:[mixin_auth],
+        mixins:[mixin_auth, tag_category_aside],
         data() {
           return {
-            uri: 'api/posts',
+            uri: 'api/post',
             auth_uri: 'auth/user',
+            reply: {
+              code: 0,
+              msg: ""
+            },
             pagination: {
               current: 0,
               isHasContent: false,
@@ -31,13 +36,18 @@
             let url = this.uri
             axios.get(`${url}?start=${page}&size=5`).then(function (response) {
               console.log(response.data)
-              bloglist.posts = response.data.content
+              console.log(response.data.code)
+
+              bloglist.reply.code = Number.parseInt(response.data.code)
+              bloglist.reply.msg = response.data.msg
+              bloglist.posts = response.data.payLoad.content
               bloglist.pagination = response.data
               bloglist.$set(bloglist, 'postCondition', true)
               //console.log(this.pagination)
             });
             this.getuser()
-
+            this.getCategories(this)
+            this.getTags(this)
           },
           formDate: function (value) {
             if (value === null) {
@@ -77,11 +87,11 @@
             </h1>
             <div class="entry-meta">
               <!--              todo: category, comments with jump link, reads-->
-              <span class="post-category"><a href="#">#category</a></span>
+              <span class="post-category"><a href="#">{{ps.category.name}}</a></span>
               <span class="post-date"><a href="#">{{formDate(ps.createdDate)}}</a></span>
               <span class="post-author"><a href="#">{{ps.userName}}</a></span>
               <span class="comments-link"><a :href="'detail?pid=' + ps.id">#0 comments</a></span>
-              <span class="views-count"><a :href="'detail?pid=' + ps.id">#0 reads</a></span>
+              <span class="views-count"><a :href="'detail?pid=' + ps.id">{{ps.view + "views"}}</a></span>
             </div>
           </header>
           <div class="entry-content clearfix">
@@ -99,6 +109,8 @@
 
         </div>
       </article>
+
+
       <ul class="text-center pagination ">
         <li :class="{disabled: !pagination.isHasPrevious}">
           <a href="#nowhere" @click="jump('first')">«</a>

@@ -23,7 +23,8 @@ class CategoryDO {
     var id: Int? = null
     @TableField("c_name")
     var name: String? = null
-
+    @TableField(exist = false)
+    var postCount:Int = 0
 
     constructor()
     constructor(id: Int?, name: String){

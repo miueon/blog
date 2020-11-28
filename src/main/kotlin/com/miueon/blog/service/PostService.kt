@@ -39,6 +39,27 @@ class PostService(@Autowired
 
     var downloadMdPath: String = "E:/0.PROJECT/fullstack/Blog/src/main/resources/static/md"
 
+    fun getPostCountByCid(cid: Int): Int {
+        val ktQueryWrapper = KtQueryWrapper(PostDO::class.java)
+        return when (cid) {
+            0 -> {
+                ktQueryWrapper.isNull(PostDO::cid)
+                postMapper.selectCount(ktQueryWrapper)
+            }
+            else -> {
+               ktQueryWrapper.eq(PostDO::cid, cid)
+                postMapper.selectCount(ktQueryWrapper)
+            }
+        }
+    }
+
+    fun getPostByCid(page: Page<PostDO>, cid: Int): Page<PostDO>? {
+        val ktQueryWrapper = KtQueryWrapper(PostDO::class.java)
+        ktQueryWrapper.orderByDesc(PostDO::createdDate)
+        val result = postMapper.selectPage(page, ktQueryWrapper)
+        return  result
+    }
+
     fun findForId(id: Int): PostDO {
         try {
             val result = postMapper.selectById(id)
@@ -80,6 +101,7 @@ class PostService(@Autowired
 
         return buffer.toString()
     }
+
 
 
     fun findForIds(ids: List<Int>): List<PostDO> {

@@ -3,7 +3,7 @@ package com.miueon.blog.util
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page
 
 class Page4Navigator<T> {
-    var content:List<T>? = null
+    var content:MutableList<T>? = null
     var isHasContent:Boolean = false
     var isHasNext = false
     var isHasPrevious = false

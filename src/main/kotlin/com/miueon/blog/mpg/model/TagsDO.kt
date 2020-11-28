@@ -24,6 +24,8 @@ class TagsDO {
     @TableField("t_name")
     var name: String? = null
 
+    @TableField(exist = false)
+    var postCount: Int = 0
 
     override fun toString(): String {
         return "TagsDO{" +

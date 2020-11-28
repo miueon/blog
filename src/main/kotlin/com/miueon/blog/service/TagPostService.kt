@@ -21,6 +21,7 @@ import kotlin.reflect.KMutableProperty1
 interface TagPostService {
     fun getTagListByPostId(pid: Int): List<TagsDO>
     fun getPostListByTagId(tid: Int): List<PostDO>
+    fun getPostCountByTid(tid: Int):Int
     fun savePostTagRel(pid: Int, tagIdList: List<Int>)
     fun deleteByPid(pid: Int)
     fun deleteByTid(tid: Int)
@@ -38,6 +39,12 @@ class TagPostServiceImpl : TagPostService {
     lateinit var postTagsMapper: PostTagsMapper
 
     private val logger = LoggerFactory.getLogger(this.javaClass)
+
+    override fun getPostCountByTid(tid: Int): Int {
+        val ktQueryWrapper = KtQueryWrapper(PostTagsDO::class.java)
+        ktQueryWrapper.eq(PostTagsDO::tid, tid)
+        return postTagsMapper.selectCount(ktQueryWrapper)
+    }
 
     override fun getTagListByPostId(pid: Int): List<TagsDO> {
         return getById(pid, Either.TAGBYPOST)

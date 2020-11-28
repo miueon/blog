@@ -24,24 +24,23 @@
       </ul>
     </div>
     <div class="widget widget-category">
-      <h3 class="widget-title">分类</h3>
+      <h3 class="widget-title">Categories</h3>
       <ul>
-        <li>
-          <a href="http://192.168.0.102:8000/categories/1/">Python学习笔记 <span class="post-count">(31)</span></a>
-        </li>
-        <li>
-          <a href="http://192.168.0.102:8000/categories/2/">开源项目 <span class="post-count">(41)</span></a>
+        <li v-for="cs in categories">
+          <a :href="'category?cid=' + cs.id"> {{cs.name}}
+            <span class="post-count">{{'(' + cs.postCount + ')'}}</span>
+          </a>
         </li>
       </ul>
     </div>
+
     <div class="widget widget-tag-cloud">
-      <h3 class="widget-title">标签云</h3>
+      <h3 class="widget-title">Tag cloud</h3>
       <ul>
-        <li>
-          <a href="http://192.168.0.102:8000/tags/1/">django <span class="post-count">(56)</span></a>
-        </li>
-        <li>
-          <a href="http://192.168.0.102:8000/tags/2/">Python <span class="post-count">(46)</span></a>
+        <li v-for="ts in tags">
+          <a :href="'tag?tid=' + ts.id"> {{ts.name}}
+            <span class="post-count">{{'(' + ts.postCount + ')'}}</span>
+          </a>
         </li>
       </ul>
     </div>

@@ -3,6 +3,7 @@ package com.miueon.blog.controller
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page
 import com.miueon.blog.mpg.model.PostDO
 import com.miueon.blog.mpg.model.TagsDO
+import com.miueon.blog.service.TagPostService
 import com.miueon.blog.service.TagService
 import com.miueon.blog.util.ApiException
 import com.miueon.blog.util.Page4Navigator
@@ -19,14 +20,20 @@ import org.springframework.web.bind.annotation.*
 class TagController {
     @Autowired
     lateinit var tagService: TagService
+    @Autowired
+    lateinit var tagPostService: TagPostService
+
     private var logger = LoggerFactory.getLogger(this.javaClass)
 
     @GetMapping
     fun getTags(
             @RequestParam(value = "start", defaultValue = "1") start: Int,
-            @RequestParam(value = "size", defaultValue = "10") size: Int
+            @RequestParam(value = "size", defaultValue = "20") size: Int
     ): ResponseEntity<Reply<Page4Navigator<TagsDO>>> {
         val tags = tagService.getTags(Page(start.toLong(), size.toLong()), 5)
+        tags.content?.forEach{
+            it.postCount = tagPostService.getPostCountByTid(it.id!!)
+        }
         return ResponseEntity(Reply.success(tags), HttpStatus.OK)
     }
 
