@@ -8,7 +8,7 @@
           <h1 class="entry-title">{{post.title}}</h1>
           <div class="entry-meta">
 
-            <span class="post-category"><a href="#">开源项目</a></span>
+            <span class="post-category"><a href="#">{{post.category.name}}</a></span>
 
             <span class="post-date"><a href="#"><time class="entry-date"
                                                       :datetime="'formDate(post.createdDate)'">
@@ -17,7 +17,7 @@
 
             <span class="post-author"><a href="#">{{post.username}}</a></span>
             <span class="comments-link"><a href="#comment-area">0 评论</a></span>
-            <span class="views-count"><a href="#">3 阅读</a></span>
+            <span class="views-count"><a href="#">{{post.view + "views"}}</a></span>
           </div>
         </header>
         <div class="entry-content clearfix" v-html="marked(post.body)"></div>
@@ -85,11 +85,15 @@
       let pid = getUrlParms("pid")
       let detail = new Vue({
         el: "#workingArea",
-        mixins: [mixin_auth],
+        mixins: [mixin_auth, tag_category_aside],
         data() {
           return {
+            reply: {
+              code: 0,
+              msg: ""
+            },
             pid: pid,
-            uri: 'api/posts/',
+            uri: 'api/post/',
             post: null,
             condition: false
           }
@@ -109,9 +113,13 @@
           load: function () {
             let url = this.uri + pid
             axios.get(url).then(function (response) {
-              detail.post = response.data
+              detail.post = response.data.payLoad
+              detail.reply.code = Number.parseInt(response.data.code)
+              detail.reply.msg = response.data.msg
               detail.$set(detail, 'condition', true)
             });
+            this.getCategories(this)
+            this.getTags(this)
           },
           formDate: function (value) {
             if (value === null) {
