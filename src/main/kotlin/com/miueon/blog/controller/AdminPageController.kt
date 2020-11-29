@@ -24,6 +24,11 @@ class AdminPageController {
         return "admin/addCategory"
     }
 
+    @GetMapping("/blog/category/delete")
+    fun deleteCategory(): String {
+        return "admin/deleteCategory"
+    }
+
     @GetMapping("/blog/post")
     fun blogPost(): String {
         return "admin/blogPost"
@@ -32,6 +37,11 @@ class AdminPageController {
     @GetMapping("/blog/post/add")
     fun addPost(): String {
         return  "admin/addPost"
+    }
+
+    @GetMapping("/blog/post/delete")
+    fun deletePost():String{
+        return "admin/deletePost"
     }
 
     @GetMapping("/blog/tag")
@@ -44,6 +54,11 @@ class AdminPageController {
         return "admin/addTag"
     }
 
+    @GetMapping("/blog/tag/delete")
+    fun deleteTag(): String {
+        return "admin/deleteTag"
+    }
+
 
     @GetMapping("/comments/comment")
     fun comment(): String {
@@ -53,6 +68,11 @@ class AdminPageController {
     @GetMapping("/comments/comment/add")
     fun addComment(): String {
         return "admin/addComment"
+    }
+
+    @GetMapping("/comments/comment/delete")
+    fun deleteComment():String{
+        return "admin/deleteComment"
     }
 
 }

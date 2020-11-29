@@ -1,0 +1,151 @@
+<script src="https://cdn.jsdelivr.net/npm/vue@2.6.12"></script>
+<div th:fragment="html" xmlns:th="http://www.thymeleaf.org">
+  <ul class="messagelist" v-show="msg.length > 0">
+    <li class="success" v-if="!alert">
+      <p v-html="msg"></p>
+    </li>
+    <li class="error" v-else>
+      <p v-html="msg"></p>
+    </li>
+  </ul>
+
+  <div id="content" class="colMS">
+    <h1>Add category</h1>
+    <div id="content-main">
+
+      <div>
+        <fieldset class="module aligned ">
+          <div class="form-row field-name">
+            <div>
+              <label class="required" for="id_name">Category name:</label>
+              <input type="text" v-model="name" class="vTextField" maxlength="100" required id="id_name">
+            </div>
+          </div>
+        </fieldset>
+        <div class="submit-row">
+          <p class="deletelink-box" v-if="change">
+            <a href="/admin/blog/category/delete" class="deletelink">Delete</a>
+          </p>
+          <button  class="btn btn-default" type="submit" @click="save">Save</button>
+          <button type="submit" class="btn btn-default" @click="save_add">Save & Add again</button>
+          <button type="submit" class="btn btn-default" @click="save_edit">Save & edit</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+  <script>
+    let add_category
+    $(function () {
+      add_category = new Vue({
+        el: "#container",
+        mixins: [mixin_auth],
+        data() {
+          return {
+            uri: '/api/category',
+            msg: "",
+            alert: false,
+            name: "",
+            change: false,
+            cid: null
+          }
+        },
+        mounted: function () {
+          this.cid = getUrlParms("change")
+          if (this.cid !== null) {
+            this.change = true
+            this.cid = Number.parseInt(this.cid)
+            axios.get(this.uri + `/${this.cid}`, {
+              headers: {
+                Authorization: getToken()
+              }
+            }).then(function (response) {
+              console.log(response.data)
+              add_category.name = response.data.payLoad.name
+            })
+          }
+          this.getuser();
+        },
+        methods: {
+          post: function () {
+            return axios.post(this.uri, {
+              "name": this.name
+            }, {
+              headers: {
+                Authorization: getToken()
+              }
+            })
+          },
+          check_length: function () {
+            if (this.name.length === 0) {
+              this.msg = "the category name shouldn't be empty."
+              this.alert = true
+              show_message(this)
+              return true
+            }
+            return false
+          },
+          error_handler: function (error) {
+            console.log(error.response)
+            add_category.msg = error.response.data.msg
+            add_category.alert = true
+            show_message(add_category)
+          },
+          save: function () {
+            if (this.check_length()) {
+              return
+            }
+
+            add_category.post().then(function (response) {
+              add_category.msg = `category ${add_category.name} is added, redirect to category page in 2s.`
+              add_category.alert = false
+              show_message(add_category)
+              setTimeout(function () {
+                window.location.href = "/admin/blog/category"
+              }, 2000);
+            }, this.error_handler);
+          },
+          save_add: function () {
+            if (this.check_length()) {
+              return
+            }
+            add_category.post().then(function (response) {
+              add_category.msg = `category ${add_category.name} is added, you can add again.`
+              add_category.alert = false
+              show_message(add_category)
+              window.location.href = "/admin/blog/category/add"
+            }, this.error_handler);
+          },
+          save_edit: function () {
+            if (this.check_length()) {
+              return
+            }
+            if (this.change) {
+
+              axios.put(this.uri + `/${this.cid}`, {
+                name: add_category.name
+              }, {
+                headers: {
+                  Authorization: getToken()
+                }
+              }).then(response => {
+                add_category.msg = `category for cid: ${add_category.cid} updated to ${add_category.name}`
+                add_category.alert = false
+                show_message(add_category)
+              }, add_category.error_handler);
+            } else {
+              this.post().then(response => {
+                add_category.change = true
+                add_category.cid = Number.parseInt(response.data.payload)
+                add_category.msg = `category ${add_category.name} added`
+                add_category.alert = false
+                show_message(add_category)
+              }, add_category.error_handler);
+            }
+
+          }
+        }
+      })
+    })
+  </script>
+</div>
