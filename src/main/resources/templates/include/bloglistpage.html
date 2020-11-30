@@ -40,7 +40,7 @@
 
               bloglist.reply.code = Number.parseInt(response.data.code)
               bloglist.reply.msg = response.data.msg
-              bloglist.posts = response.data.payLoad.content
+              bloglist.posts = response.data.payload.content
               bloglist.pagination = response.data
               bloglist.$set(bloglist, 'postCondition', true)
               //console.log(this.pagination)

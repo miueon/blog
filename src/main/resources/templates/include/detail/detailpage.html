@@ -113,7 +113,7 @@
           load: function () {
             let url = this.uri + pid
             axios.get(url).then(function (response) {
-              detail.post = response.data.payLoad
+              detail.post = response.data.payload
               detail.reply.code = Number.parseInt(response.data.code)
               detail.reply.msg = response.data.msg
               detail.$set(detail, 'condition', true)

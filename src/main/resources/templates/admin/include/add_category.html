@@ -26,7 +26,7 @@
           <p class="deletelink-box" v-if="change">
             <a href="/admin/blog/category/delete" class="deletelink">Delete</a>
           </p>
-          <button  class="btn btn-default" type="submit" @click="save">Save</button>
+          <button class="btn btn-default" type="submit" @click="save">Save</button>
           <button type="submit" class="btn btn-default" @click="save_add">Save & Add again</button>
           <button type="submit" class="btn btn-default" @click="save_edit">Save & edit</button>
         </div>
@@ -34,8 +34,11 @@
 
     </div>
   </div>
-  <script>
+  <script type="text/babel" data-type="module">
     let add_category
+    import {Save} from "/js/component/save.js";
+
+    let save_worker
     $(function () {
       add_category = new Vue({
         el: "#container",
@@ -47,35 +50,27 @@
             alert: false,
             name: "",
             change: false,
-            cid: null
+            id: null
           }
         },
         mounted: function () {
-          this.cid = getUrlParms("change")
-          if (this.cid !== null) {
+          this.id = getUrlParms("change")
+          if (this.id !== null) {
             this.change = true
-            this.cid = Number.parseInt(this.cid)
-            axios.get(this.uri + `/${this.cid}`, {
+            this.id = Number.parseInt(this.id)
+            axios.get(this.uri + `/${this.id}`, {
               headers: {
                 Authorization: getToken()
               }
             }).then(function (response) {
               console.log(response.data)
-              add_category.name = response.data.payLoad.name
+              add_category.name = response.data.payload.name
             })
           }
           this.getuser();
+          save_worker = new Save(this, getToken());
         },
         methods: {
-          post: function () {
-            return axios.post(this.uri, {
-              "name": this.name
-            }, {
-              headers: {
-                Authorization: getToken()
-              }
-            })
-          },
           check_length: function () {
             if (this.name.length === 0) {
               this.msg = "the category name shouldn't be empty."
@@ -92,57 +87,36 @@
             show_message(add_category)
           },
           save: function () {
-            if (this.check_length()) {
-              return
-            }
-
-            add_category.post().then(function (response) {
-              add_category.msg = `category ${add_category.name} is added, redirect to category page in 2s.`
-              add_category.alert = false
-              show_message(add_category)
-              setTimeout(function () {
-                window.location.href = "/admin/blog/category"
-              }, 2000);
-            }, this.error_handler);
+            save_worker.save({name: this.name},
+              `category ${add_category.name} is added, redirect to category page in 2s.`,
+              "/admin/blog/category"
+            )
           },
           save_add: function () {
-            if (this.check_length()) {
-              return
-            }
-            add_category.post().then(function (response) {
-              add_category.msg = `category ${add_category.name} is added, you can add again.`
+            save_worker.save_add({name: this.name},
+              `category ${add_category.name} is added, you can add again.`,
+              "/admin/blog/category/add"
+            )
+          },
+          update: function () {
+            return axios.put(this.uri + `/${this.id}`, {
+              name: add_category.name
+            }, {
+              headers: {
+                Authorization: getToken()
+              }
+            }).then(response => {
+              console.log(add_category.id)
+              add_category.msg = `category for id: ${add_category.id} updated to ${add_category.name}`
               add_category.alert = false
               show_message(add_category)
-              window.location.href = "/admin/blog/category/add"
-            }, this.error_handler);
+
+            });
           },
           save_edit: function () {
-            if (this.check_length()) {
-              return
-            }
-            if (this.change) {
-
-              axios.put(this.uri + `/${this.cid}`, {
-                name: add_category.name
-              }, {
-                headers: {
-                  Authorization: getToken()
-                }
-              }).then(response => {
-                add_category.msg = `category for cid: ${add_category.cid} updated to ${add_category.name}`
-                add_category.alert = false
-                show_message(add_category)
-              }, add_category.error_handler);
-            } else {
-              this.post().then(response => {
-                add_category.change = true
-                add_category.cid = Number.parseInt(response.data.payload)
-                add_category.msg = `category ${add_category.name} added`
-                add_category.alert = false
-                show_message(add_category)
-              }, add_category.error_handler);
-            }
-
+            save_worker.save_edit({
+              name: this.name
+            }, `category ${add_category.name} added`)
           }
         }
       })
