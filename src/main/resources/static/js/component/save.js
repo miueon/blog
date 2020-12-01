@@ -25,8 +25,10 @@ export class Save {
     if (target.check_length()) {
       return true
     } else if (target.change) {
-      this.promise = target.update().catch(function (err) {throw  err});
-      return true
+      this.promise = target.update().catch(function (err) {
+        throw  err
+      });
+      return true;
     }
     return false
   }
@@ -37,7 +39,7 @@ export class Save {
         const result = await this.post(data, msg);
         console.log(result)
         callback(result);
-      } else {
+      } else if(this.promise){
         await this.promise.then(callback);
       }
     } catch (err) {

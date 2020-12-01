@@ -115,7 +115,20 @@
             });
           },
           bulk_delete: function () {
-
+            axios.post(`${category.uri}/bulk_delete`, {
+              ids: category.selected_ids
+            }, {
+              headers: {
+                Authorization: getToken()
+              }
+            }).then(function (response) {
+              window.location.href = "/admin/blog/category/delete"
+            }).catch(function (err) {
+              let data = err.response.data
+              category.msg = data.msg
+              category.alert = true
+              show_message(category)
+            });
           },
           select_all: function () {
             if (category.selected_all)  {

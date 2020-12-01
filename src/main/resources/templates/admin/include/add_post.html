@@ -1,0 +1,219 @@
+<script src="https://cdn.jsdelivr.net/npm/vue@2.6.12"></script>
+<div th:fragment="html" xmlns:th="http://www.thymeleaf.org">
+  <div th:replace="admin/include/message_line::html"></div>
+
+  <div id="content" class="colM">
+    <h1>Add Post</h1>
+    <div id="content-main">
+      <div>
+        <fieldset class="module aligned">
+          <div class="form-row field-title">
+            <div>
+              <label class="required" for="id_title">Title:</label>
+              <input id="id_title" type="text" name="title" class="vTextField" maxlength="70" required
+                     v-model="post.title">
+            </div>
+          </div>
+          <div class="form-row field-body">
+            <div>
+              <label class="required" for="id_body">Body:</label>
+              <textarea name="body" cols="40" rows="10" class="vLargeTextField" required id="id_body"
+                        v-model="post.body"></textarea>
+            </div>
+          </div>
+          <div class="form-row field-category">
+            <div>
+              <label for="id_category">Category:</label>
+              <div class="related-widget-wrapper">
+                <select v-model="post.cid" name="category" required id="id_category" >
+                  <option value="" disabled>choose one</option>
+                  <option v-bind:value="item.id" v-for="item in categories">{{item.name}}</option>
+                </select>
+
+                <a class="related-widget-wrapper-link change-related" id="change_id_category"
+                   @click="edit_category"><img src="/img/icon-changelink.svg" alt="change"></a>
+                <a class="related-widget-wrapper-link add-related" id="add_id_category"
+                   @click="add_c"><img src="/img/icon-addlink.svg" alt="add">
+                </a>
+
+              </div>
+            </div>
+          </div>
+
+          <div class="form-row field-tags">
+            <div>
+              <label for="id_tags">Tags:</label>
+              <div class="related-widget-wrapper">
+                <select name="tags" id="id_tags" multiple v-model="post.tagIdList">
+                  <option v-bind:value="item.id" v-for="item in tags">{{item.name}}</option>
+                </select>
+                <a class="related-widget-wrapper-link add-related" id="add_id_tag"
+                   @click="add_tag"><img src="/img/icon-addlink.svg" alt="add">
+                </a>
+              </div>
+            </div>
+          </div>
+        </fieldset>
+        <div class="submit-row">
+          <button class="btn btn-danger" type="submit" @click="delete_this" v-if="change">Delete</button>
+          <button class="btn btn-default" type="submit" @click="save">Save</button>
+          <button type="submit" class="btn btn-default" @click="save_add">Save & Add again</button>
+          <button type="submit" class="btn btn-default" @click="save_edit">Save & edit</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script type="text/babel" data-type="module">
+    let vue
+    import {Save} from "/js/component/save.js";
+
+    let save_worker
+    $(function () {
+      vue = new Vue({
+        el: "#container",
+        mixins: [mixin_auth],
+        data() {
+          return {
+            uri: '/api/post',
+            c_uri: '/api/category',
+            t_uri: '/api/tag',
+            msg: "",
+            alert: false,
+            post: {
+              title: "",
+              body: "",
+              cid: null,
+              tagIdList: []
+            },
+            categories: [],
+            tags: [],
+            old_post: null,
+            change: false,
+            id: null
+          }
+        },
+        mounted: function () {
+          this.load()
+          save_worker = new Save(this, getToken());
+          this.getuser()
+          this.id = getUrlParms("change")
+          if (this.id !== null) {
+            this.id = Number.parseInt(this.id)
+            axios.get(`${this.uri}/${this.id}`, {
+              headers: {
+                Authorization: getToken()
+              }
+            }).then(function (response) {
+              let data = response.data.payload
+              vue.post.title = data.title
+              vue.post.body = data.body
+              vue.post.cid = data.category.id
+              vue.post.tagIdList = data.tags.map(value => {
+                return value.id
+              })
+              vue.change = true
+            }).catch(this.error_handler);
+          }
+        },
+        methods: {
+          load: function () {
+            axios.get(`${this.c_uri}?start=1&size=100`, {
+              headers: {
+                Authorization: getToken()
+              }
+            }).then(function (response) {
+              vue.categories = response.data.payload.content
+            }).catch(this.error_handler);
+            axios.get(`${this.t_uri}?start=1&size=100`, {
+              headers: {
+                Authorization: getToken()
+              }
+            }).then(function (response) {
+              vue.tags = response.data.payload.content
+            }).catch(this.error_handler);
+          },
+          error_handler: function (error) {
+            vue.old_post = vue.post
+            console.log(error.response)
+            vue.msg = error.response.data.msg
+            vue.alert = true
+            show_message(vue)
+          },
+          check_length: function () {
+            const title_length = this.post.title.length === 0;
+            const body_length = this.post.body.length === 0;
+            let empty_message
+
+            if (title_length || body_length) {
+              if (title_length && body_length) {
+                empty_message = "title & body"
+              } else if (body_length) {
+                empty_message = "body";
+              } else {
+                empty_message = "title"
+              }
+
+              this.msg = `the post ${empty_message} shouldn't be empty.`;
+              this.alert = true
+              show_message(this)
+              return true
+            }
+            return false
+          },
+
+          save: function () {
+            save_worker.save(this.post,
+              `post for ${this.post.title} is added, redirect to post page in 2s.`,
+              "/admin/blog/post"
+            )
+            this.old_post = this.post;
+          },
+          save_add: function () {
+            save_worker.save_add(this.post,
+              `post for ${this.post.title} is added, you can add again.`,
+              "/admin/blog/post/add"
+            )
+            this.old_post = this.post;
+          },
+          update: function () {
+            return axios.put(this.uri + `/${this.id}`, this.post, {
+              headers: {
+                Authorization: getToken()
+              }
+            }).then(response => {
+              console.log(vue.id)
+              vue.msg = `post for id: ${vue.id} is updated`
+              vue.alert = false
+              show_message(vue)
+            });
+          },
+          save_edit: function () {
+            save_worker.save_edit(this.post, `post ${this.post.title} added`);
+            this.old_post = this.post;
+          },
+          delete_this: function () {
+            axios.post(`${vue.uri}/bulk_delete`, {
+              ids: [vue.id]
+            }, {
+              headers: {
+                Authorization: getToken()
+              }
+            }).then(function (response) {
+              window.location.href = `/admin/blog/post/delete?cid=${vue.id}`;
+            });
+          },
+          add_c: function () {
+
+          },
+          edit_category: function () {
+
+          },
+          add_tag: function () {
+
+          }
+        }
+      })
+    });
+  </script>
+</div>

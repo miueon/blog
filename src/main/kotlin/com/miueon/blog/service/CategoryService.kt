@@ -21,6 +21,8 @@ interface CategoryService {
     fun saveCategory(name: String): CategoryDO
     fun updateForId(id: Int, name: String)
     fun deleteForId(id: Int)
+    fun bulkDelete(ids:Set<Int>)
+    fun getDeleteInfo(ids: Set<Int>):List<CategoryDO>
 }
 
 @Service
@@ -54,6 +56,14 @@ class CategoryServiceImpl : CategoryService {
         val ktQueryWrapper = KtQueryWrapper(CategoryDO::class.java)
         ktQueryWrapper.eq(CategoryDO::name, name)
         return categoryMapper.selectOne(ktQueryWrapper)
+    }
+
+    override fun getDeleteInfo(ids: Set<Int>): List<CategoryDO> {
+        try {
+            return categoryMapper.selectBatchIds(ids)
+        } catch (e: RuntimeException) {
+            throw ApiException(e, HttpStatus.BAD_REQUEST)
+        }
     }
 
     //    @Transactional(rollbackFor = {RuntimeException.class, IOException.class})
@@ -110,6 +120,17 @@ class CategoryServiceImpl : CategoryService {
                     .eq(PostDO::id, it.id)
                 postMapper.update(it, ktUpdateWrapper)
             }
+        } catch (e: RuntimeException) {
+            throw ApiException(e, HttpStatus.INTERNAL_SERVER_ERROR)
+        }
+    }
+    @Transactional
+    override fun bulkDelete(ids: Set<Int>) {
+        try {
+            ids.forEach {
+                obliterateCategoryInfo(it)
+            }
+            categoryMapper.deleteBatchIds(ids)
         } catch (e: RuntimeException) {
             throw ApiException(e, HttpStatus.INTERNAL_SERVER_ERROR)
         }

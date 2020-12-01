@@ -1,18 +1,15 @@
 <script src="https://cdn.jsdelivr.net/npm/vue@2.6.12"></script>
 <div th:fragment="html" xmlns:th="http://www.thymeleaf.org">
-  <ul class="messagelist" v-show="msg.length > 0">
-    <li class="success" v-if="!alert">
-      <p v-html="msg"></p>
-    </li>
-    <li class="error" v-else>
-      <p v-html="msg"></p>
-    </li>
-  </ul>
+  <div th:replace="message_line::html"></div>
 
   <div id="content" class="colMS">
     <h1>Add category</h1>
     <div id="content-main">
-
+      <ul class="object-tools" v-if="change">
+        <li>
+          <a :href="'/admin/blog/post?cid='+ id" class="addlink">posts</a>
+        </li>
+      </ul>
       <div>
         <fieldset class="module aligned ">
           <div class="form-row field-name">
@@ -23,9 +20,7 @@
           </div>
         </fieldset>
         <div class="submit-row">
-          <p class="deletelink-box" v-if="change">
-            <a href="/admin/blog/category/delete" class="deletelink">Delete</a>
-          </p>
+          <button class="btn btn-danger" type="submit" @click="delete_this" v-if="change">Delete</button>
           <button class="btn btn-default" type="submit" @click="save">Save</button>
           <button type="submit" class="btn btn-default" @click="save_add">Save & Add again</button>
           <button type="submit" class="btn btn-default" @click="save_edit">Save & edit</button>
@@ -49,6 +44,7 @@
             msg: "",
             alert: false,
             name: "",
+            old_name: "",
             change: false,
             id: null
           }
@@ -65,6 +61,7 @@
             }).then(function (response) {
               console.log(response.data)
               add_category.name = response.data.payload.name
+              add_category.old_name = add_category.name
             }).catch(function (err) {
               add_category.alert = true
               add_category.msg = `category for cid: ${add_category.id} not exist.`
@@ -83,10 +80,16 @@
               this.alert = true
               show_message(this)
               return true
+            } else if (this.change && this.old_name === this.name) {
+              this.msg = "You don't change it a bit."
+              this.alert = true
+              show_message(this)
+              return true
             }
             return false
           },
           error_handler: function (error) {
+            add_category.old_name = add_category.name
             console.log(error.response)
             add_category.msg = error.response.data.msg
             add_category.alert = true
@@ -97,12 +100,14 @@
               `category ${add_category.name} is added, redirect to category page in 2s.`,
               "/admin/blog/category"
             )
+            this.old_name = this.name
           },
           save_add: function () {
             save_worker.save_add({name: this.name},
               `category ${add_category.name} is added, you can add again.`,
               "/admin/blog/category/add"
             )
+            this.old_name = this.name
           },
           update: function () {
             return axios.put(this.uri + `/${this.id}`, {
@@ -121,7 +126,19 @@
           save_edit: function () {
             save_worker.save_edit({
               name: this.name
-            }, `category ${add_category.name} added`)
+            }, `category ${add_category.name} added`);
+            this.old_name = this.name
+          },
+          delete_this: function () {
+            axios.post(`${add_category.uri}/bulk_delete`, {
+              ids: [add_category.id]
+            }, {
+              headers: {
+                Authorization: getToken()
+              }
+            }).then(function (response) {
+              window.location.href = `/admin/blog/category/delete?cid=${add_category.id}`;
+            });
           }
         }
       })

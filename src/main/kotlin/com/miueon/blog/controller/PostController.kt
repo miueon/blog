@@ -197,6 +197,7 @@ class PostController {
         post.title = dto.title
         post.body = dto.body
         post.cid = dto.cid
+
         postService.updatePost(post, id)
         tagPostService.savePostTagRel(id, dto.tagIdList)
         return Reply.success()

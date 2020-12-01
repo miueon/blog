@@ -1,0 +1,86 @@
+<script src="https://cdn.jsdelivr.net/npm/vue@2.6.12"></script>
+<div th:fragment="html" xmlns:th="http://www.thymeleaf.org">
+  <ul class="messagelist" v-show="msg.length > 0">
+    <li class="success" v-if="!alert">
+      <p v-html="msg"></p>
+    </li>
+    <li class="error" v-else>
+      <p v-html="msg"></p>
+    </li>
+  </ul>
+
+  <div id="content" class="flex">
+    <aside class="col-md-4">
+      <div class="widget widget-tag-cloud">
+        <h3 class="widget-title">{{categories.length + " categories would be delete."}}</h3>
+        <ul>
+          <li v-for="item in categories">
+            <a :href="'/admin/blog/category/add?change=' + item.id">{{item.name}}
+              <span class="post-count">{{'(' + item.postCount + ')'}}</span>
+            </a>
+          </li>
+        </ul>
+      </div>
+    </aside>
+  </div>
+  <div class="submit-row">
+    <button type="submit" class="btn btn-danger" @click="sure">Delete</button>
+    <button type="submit" class="btn btn-default" @click="back">Back</button>
+  </div>
+  <script type="text/babel">
+    let vue
+    $(function () {
+      vue = new Vue({
+        el: "#container",
+        mixins: [mixin_auth],
+
+        data() {
+          return {
+            uri: '/api/category',
+            msg: "",
+            alert: false,
+            categories: [],
+            cid: null
+          }
+        },
+        mounted: function () {
+          axios.get(`${this.uri}/bulk_delete`, {
+            headers: {
+              Authorization: getToken()
+            }
+          }).then(function (response) {
+            vue.categories = response.data.payload
+          }).catch(err => {
+            vue.msg = err.response.data.msg
+            vue.alert = true
+            show_message(vue)
+          })
+          this.getuser()
+          this.cid = getUrlParms("cid")
+        },
+        methods: {
+          sure: function () {
+            axios.delete(vue.uri, {
+              headers: {
+                Authorization: getToken()
+              }
+            }).then(function (response) {
+              vue.back()
+            }).catch(err => {
+              vue.msg = err.response.data.msg
+              vue.alert = true
+              show_message(vue)
+            })
+          },
+          back: function () {
+            if (this.cid) {
+              window.location.href = "/admin/blog/category/add?change=" + this.cid;
+            } else {
+              window.location.href = "/admin/blog/category"
+            }
+          }
+        }
+      })
+    })
+  </script>
+</div>

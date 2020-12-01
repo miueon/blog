@@ -1,0 +1,11 @@
+<script src="https://cdn.jsdelivr.net/npm/vue@2.6.12"></script>
+<div th:fragment="html" xmlns:th="http://www.thymeleaf.org">
+  <ul class="messagelist" v-show="msg.length > 0">
+    <li class="success" v-if="!alert">
+      <p v-html="msg"></p>
+    </li>
+    <li class="error" v-else>
+      <p v-html="msg"></p>
+    </li>
+  </ul>
+</div>

@@ -117,6 +117,12 @@ class PostService(@Autowired
         return post
     }
 
+    private inline fun setCid2null(postDO: PostDO) {
+        if (postDO.cid == 0) {
+            postDO.cid = null
+        }
+    }
+
     @Transactional
     fun savePost(postDO: PostDO): PostDO {
         try {
@@ -129,6 +135,8 @@ class PostService(@Autowired
                         HttpStatus.BAD_REQUEST
                 )
             }
+            setCid2null(postDO)
+
             postMapper.insert(postDO)
             return postDO
         } catch (e: ApiException) {
@@ -147,6 +155,7 @@ class PostService(@Autowired
         try {
             p.modifiedDate = LocalDateTime.now()
             val ktUpdateWrapper = KtUpdateWrapper(PostDO::class.java).eq(PostDO::id, pid)
+            setCid2null(p)
             if (p.cid != null) {
                 categoryMapper.selectByPrimaryKey(p.cid)
                         ?: throw ApiException("the category id: ${p.cid} is not exist.",

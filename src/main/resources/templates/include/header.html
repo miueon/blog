@@ -13,10 +13,9 @@
   <link rel="stylesheet" href="https://code.ionicframework.com/ionicons/2.0.1/css/ionicons.min.css">
   <link rel="stylesheet" href="css/bnwtheme/pace.css">
   <link rel="stylesheet" href="css/bnwtheme/custom.css">
-  <link href="https://cdn.bootcss.com/highlight.js/9.15.8/styles/github.min.css" rel="stylesheet">
 
-  <link rel="stylesheet"
-        href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.2/styles/default.min.css">
+
+
 
   <script src="js/bootstrap/3.3.6/bootstrap.min.js"></script>
   <script src="js/marked/marked.min.js"></script>
@@ -27,10 +26,11 @@
   <!--  new js-->
   <script src="js/pace.min.js"></script>
 
-
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.2/highlight.min.js"></script>
+  <link rel="stylesheet"
+        href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/10.4.0/styles/default.min.css">
+  <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/10.4.0/highlight.min.js"></script>
   <script src="https://cdn.bootcss.com/highlightjs-line-numbers.js/2.7.0/highlightjs-line-numbers.min.js"></script>
-
+  <link rel="stylesheet" href="css/bnwtheme/an-old-hope.min.css">
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
   <style>
       .codehilite {
@@ -164,13 +164,13 @@
         getCategories: function (target) {
           axios.get(this.categoryUrl).then(function (response) {
 
-            target.categories = response.data.payLoad.content
+            target.categories = response.data.payload.content
           })
         },
         getTags: function (target) {
           axios.get(this.tagUrl).then(function (response) {
 
-            target.tags = response.data.payLoad.content
+            target.tags = response.data.payload.content
           })
         }
       }

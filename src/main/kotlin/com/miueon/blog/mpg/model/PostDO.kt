@@ -9,6 +9,7 @@ import com.miueon.blog.pojo.user
 import io.swagger.annotations.ApiModel
 import io.swagger.annotations.ApiModelProperty
 import java.time.LocalDateTime
+import java.time.ZoneId
 import java.util.*
 import kotlin.system.exitProcess
 
@@ -31,9 +32,9 @@ class PostDO {
     @TableField(value = "content")
     var body: String? = null
     @TableField("createdDate")
-    var createdDate: LocalDateTime =  LocalDateTime.now()
+    var createdDate: LocalDateTime =  LocalDateTime.now(ZoneId.of("+08:00"))
     @TableField("modifiedDate")
-    var modifiedDate: LocalDateTime = LocalDateTime.now()
+    var modifiedDate: LocalDateTime = LocalDateTime.now(ZoneId.of("+08:00"))
     @JsonIgnore
     var cid: Int? = null
     var view: Int = 0

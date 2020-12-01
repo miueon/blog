@@ -7,6 +7,7 @@ import com.baomidou.mybatisplus.annotation.TableId
 import io.swagger.annotations.ApiModel
 import io.swagger.annotations.ApiModelProperty
 import java.time.LocalDateTime
+import java.time.ZoneId
 
 /**
  * <p>
@@ -28,7 +29,7 @@ class UserDO {
     var salt: String? = null
 
     @TableField("createdDate")
-    var createdDate: LocalDateTime = LocalDateTime.now()
+    var createdDate: LocalDateTime = LocalDateTime.now(ZoneId.of("+08:00"))
 
 
     override fun toString(): String {
