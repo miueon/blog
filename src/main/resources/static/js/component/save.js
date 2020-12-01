@@ -25,7 +25,7 @@ export class Save {
     if (target.check_length()) {
       return true
     } else if (target.change) {
-      this.promise = target.update();
+      this.promise = target.update().catch(function (err) {throw  err});
       return true
     }
     return false

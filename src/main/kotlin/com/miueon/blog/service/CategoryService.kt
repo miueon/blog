@@ -25,6 +25,9 @@ interface CategoryService {
 
 @Service
 class CategoryServiceImpl : CategoryService {
+    companion object{
+        private const val unClassified = "unClassified"
+    }
     @Autowired
     lateinit var categoryMapper: CategoryMapper
     @Autowired
@@ -45,6 +48,9 @@ class CategoryServiceImpl : CategoryService {
     }
 
     private fun findByName(name: String): CategoryDO? {
+        if (name == unClassified) {
+            return CategoryDO(0, unClassified)
+        }
         val ktQueryWrapper = KtQueryWrapper(CategoryDO::class.java)
         ktQueryWrapper.eq(CategoryDO::name, name)
         return categoryMapper.selectOne(ktQueryWrapper)

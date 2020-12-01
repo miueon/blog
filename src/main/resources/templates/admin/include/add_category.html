@@ -65,7 +65,13 @@
             }).then(function (response) {
               console.log(response.data)
               add_category.name = response.data.payload.name
-            })
+            }).catch(function (err) {
+              add_category.alert = true
+              add_category.msg = `category for cid: ${add_category.id} not exist.`
+              show_message(add_category)
+              add_category.change = false
+              add_category.id = null
+            });
           }
           this.getuser();
           save_worker = new Save(this, getToken());
@@ -110,7 +116,6 @@
               add_category.msg = `category for id: ${add_category.id} updated to ${add_category.name}`
               add_category.alert = false
               show_message(add_category)
-
             });
           },
           save_edit: function () {

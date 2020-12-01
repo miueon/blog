@@ -1,0 +1,24 @@
+<script src="https://cdn.jsdelivr.net/npm/vue@2.6.12"></script>
+<div th:fragment="html" xmlns:th="http://www.thymeleaf.org">
+  <ul class="text-center pagination ">
+    <li :class="{disabled: !pagination.isHasPrevious}">
+      <a href="#nowhere" @click="jump('first')">«</a>
+    </li>
+    <li :class="{ disabled: !pagination.isHasPrevious }">
+      <a href="#nowhere" @click="jump('pre')">‹</a>
+    </li>
+
+    <li v-for="i in pagination.navigatePageNums">
+      <a href="#nowhere" v-on:click="jumpByNumber(i)">
+        {{i}}
+      </a>
+    </li>
+
+    <li :class="{ disabled: !pagination.isHasNext }">
+      <a href="#nowhere" @click="jump('next')">›</a>
+    </li>
+    <li :class="{ disabled: !pagination.isHasNext }">
+      <a href="#nowhere" @click="jump('last')">»</a>
+    </li>
+  </ul>
+</div>

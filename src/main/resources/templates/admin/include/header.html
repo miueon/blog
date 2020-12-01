@@ -24,6 +24,7 @@
   <link rel="stylesheet" href="/css/base.css">
   <link rel="stylesheet" href="/css/dashboard.css">
   <link rel="stylesheet" href="/css/responsive.css">
+  <link rel="stylesheet" href="/css/changelists.css">
   <script>
     function getToken() {
       let token = sessionStorage.getItem('__AUTH__')
@@ -64,6 +65,24 @@
 
     function show_message(target) {
       setTimeout(()=> {target.msg=""}, 10000)
+    }
+
+    function jump(page, vue) {
+      if (page === 'first' && vue.pagination.isHasPrevious) {
+        vue.load(1)
+      } else if (page === 'pre' && vue.pagination.isHasPrevious) {
+        vue.load(vue.pagination.current - 1)
+      } else if (page === 'next' && vue.pagination.isHasNext) {
+        vue.load(vue.pagination.current + 1)
+      } else if (page === 'last' && vue.pagination.isHasNext) {
+        vue.load(vue.pagination.totalPages)
+      }
+    }
+
+    function jumpByNumber(page, vue) {
+      if (page !== vue.pagination.current) {
+        vue.load(page)
+      }
     }
 
     let mixin_auth = {

@@ -41,7 +41,7 @@
               bloglist.reply.code = Number.parseInt(response.data.code)
               bloglist.reply.msg = response.data.msg
               bloglist.posts = response.data.payload.content
-              bloglist.pagination = response.data
+              bloglist.pagination = response.data.payload
               bloglist.$set(bloglist, 'postCondition', true)
               //console.log(this.pagination)
             });
@@ -132,6 +132,7 @@
           <a href="#nowhere" @click="jump('last')">»</a>
         </li>
       </ul>
+
     </main><!-- /.blog-main -->
 
     <aside class="col-md-4">

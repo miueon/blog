@@ -35,9 +35,11 @@ class CategoryController {
         categories.content?.forEach{
             it.postCount = postService.getPostCountByCid(it.id!!)
         }
-        val temp = CategoryDO(0, "unClassified")
-        temp.postCount = postService.getPostCountByCid(0)
-        categories.content?.add(temp)
+        if (start == 1) {
+            val temp = CategoryDO(0, "unClassified")
+            temp.postCount = postService.getPostCountByCid(0)
+            categories.content?.add(temp)
+        }
         return ResponseEntity(Reply.success(categories), HttpStatus.OK)
     }
 
