@@ -5,62 +5,64 @@
   <div id="content" class="colM">
     <h1>Add Post</h1>
     <div id="content-main">
-      <div>
-        <fieldset class="module aligned">
-          <div class="form-row field-title">
-            <div>
-              <label class="required" for="id_title">Title:</label>
-              <input id="id_title" type="text" name="title" class="vTextField" maxlength="70" required
-                     v-model="post.title">
-            </div>
-          </div>
-          <div class="form-row field-body">
-            <div>
-              <label class="required" for="id_body">Body:</label>
-              <textarea name="body" cols="40" rows="10" class="vLargeTextField" required id="id_body"
-                        v-model="post.body"></textarea>
-            </div>
-          </div>
-          <div class="form-row field-category">
-            <div>
-              <label for="id_category">Category:</label>
-              <div class="related-widget-wrapper">
-                <select v-model="post.cid" name="category" required id="id_category" >
-                  <option value="" disabled>choose one</option>
-                  <option v-bind:value="item.id" v-for="item in categories">{{item.name}}</option>
-                </select>
-
-                <a class="related-widget-wrapper-link change-related" id="change_id_category"
-                   @click="edit_category"><img src="/img/icon-changelink.svg" alt="change"></a>
-                <a class="related-widget-wrapper-link add-related" id="add_id_category"
-                   @click="add_c"><img src="/img/icon-addlink.svg" alt="add">
-                </a>
-
+      <form id="post_form">
+        <div>
+          <fieldset class="module aligned">
+            <div class="form-row field-title">
+              <div>
+                <label class="required" for="id_title">Title:</label>
+                <input id="id_title" type="text" name="title" class="vTextField" maxlength="70" required
+                       v-model="post.title">
               </div>
             </div>
-          </div>
-
-          <div class="form-row field-tags">
-            <div>
-              <label for="id_tags">Tags:</label>
-              <div class="related-widget-wrapper">
-                <select name="tags" id="id_tags" multiple v-model="post.tagIdList">
-                  <option v-bind:value="item.id" v-for="item in tags">{{item.name}}</option>
-                </select>
-                <a class="related-widget-wrapper-link add-related" id="add_id_tag"
-                   @click="add_tag"><img src="/img/icon-addlink.svg" alt="add">
-                </a>
+            <div class="form-row field-body">
+              <div>
+                <label class="required" for="id_body">Body:</label>
+                <textarea name="body" cols="40" rows="10" class="vLargeTextField" required id="id_body"
+                          v-model="post.body"></textarea>
               </div>
             </div>
+            <div class="form-row field-category">
+              <div>
+                <label for="id_category">Category:</label>
+                <div class="related-widget-wrapper">
+                  <select v-model="post.cid" name="category" required id="id_category">
+                    <option value="" disabled>choose one</option>
+                    <option v-bind:value="item.id" v-for="item in categories">{{item.name}}</option>
+                  </select>
+
+                  <a class="related-widget-wrapper-link change-related" id="change_id_category"
+                     @click="edit_category"><img src="/img/icon-changelink.svg" alt="change"></a>
+                  <a class="related-widget-wrapper-link add-related" id="add_id_category"
+                     @click="add_c"><img src="/img/icon-addlink.svg" alt="add">
+                  </a>
+
+                </div>
+              </div>
+            </div>
+
+            <div class="form-row field-tags">
+              <div>
+                <label for="id_tags">Tags:</label>
+                <div class="related-widget-wrapper">
+                  <select name="tags" id="id_tags" multiple v-model="post.tagIdList">
+                    <option v-bind:value="item.id" v-for="item in tags">{{item.name}}</option>
+                  </select>
+                  <a class="related-widget-wrapper-link add-related" id="add_id_tag"
+                     @click="add_tag"><img src="/img/icon-addlink.svg" alt="add">
+                  </a>
+                </div>
+              </div>
+            </div>
+          </fieldset>
+          <div class="submit-row">
+            <button class="btn btn-danger" type="submit" @click="delete_this" v-if="change">Delete</button>
+            <button class="btn btn-default" type="submit" @click="save">Save</button>
+            <button type="submit" class="btn btn-default" @click="save_add">Save & Add again</button>
+            <button type="submit" class="btn btn-default" @click="save_edit">Save & edit</button>
           </div>
-        </fieldset>
-        <div class="submit-row">
-          <button class="btn btn-danger" type="submit" @click="delete_this" v-if="change">Delete</button>
-          <button class="btn btn-default" type="submit" @click="save">Save</button>
-          <button type="submit" class="btn btn-default" @click="save_add">Save & Add again</button>
-          <button type="submit" class="btn btn-default" @click="save_edit">Save & edit</button>
         </div>
-      </div>
+      </form>
     </div>
   </div>
 

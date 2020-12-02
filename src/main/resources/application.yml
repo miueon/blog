@@ -9,6 +9,14 @@ spring:
     timeout: 1000ms
     database: 0
 
+  rabbitmq:
+    host: localhost
+    port: 5672
+    virtual-host: /blog
+    username: crux
+    password: 123456
+    publisher-confirms: true
+
   thymeleaf:
     mode: LEGACYHTML5
     encoding: UTF-8

@@ -20,7 +20,7 @@
             <span class="views-count"><a href="#">{{post.view + "views"}}</a></span>
           </div>
         </header>
-        <div class="entry-content clearfix" v-html="marked(post.body)"></div>
+        <div class="entry-content clearfix" v-html="compiled_html"></div>
       </article>
       <section class="comment-area" id="comment-area">
         <hr>
@@ -95,6 +95,7 @@
             pid: pid,
             uri: 'api/post/',
             post: null,
+            compiled_html: null,
             condition: false
           }
         },
@@ -114,9 +115,12 @@
             let url = this.uri + pid
             axios.get(url).then(function (response) {
               detail.post = response.data.payload
+              detail.compiled_html = marked(detail.post.body)
               detail.reply.code = Number.parseInt(response.data.code)
               detail.reply.msg = response.data.msg
               detail.$set(detail, 'condition', true)
+            }).then(function () {
+              downloadJSAtOnLoad()
             });
             this.getCategories(this)
             this.getTags(this)

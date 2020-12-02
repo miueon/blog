@@ -1,0 +1,23 @@
+<script src="https://cdn.jsdelivr.net/npm/vue@2.6.12"></script>
+<div th:fragment="html" xmlns:th="http://www.thymeleaf.org">
+  <div th:replace="/admin/include/message_line::html"></div>
+
+  <div id="content" class="flex">
+    <h1>Click to modify</h1>
+    <ul class="object-tools">
+      <li>
+        <a href="/admin/blog/post/add" class="addlink">Add post</a>
+      </li>
+    </ul>
+    <div class="module" id="changelist">
+      <form id="changelist-form">
+        <div class="actions">
+          <label>Action:
+            <button class="btn btn-danger" @click="bulk_delete">Delete</button>
+          </label>
+
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

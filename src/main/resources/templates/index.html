@@ -18,6 +18,17 @@
   <div th:replace="include/modal4register::html"></div>
   <div th:replace="include/footer::html"></div>
 </div>
-
+<script type="text/javascript">
+  function downloadJSAtOnLoad() {
+    let element = document.createElement('script');
+    element.src = "https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"
+    document.body.appendChild(element)
+  }
+  if (window.addEventListener) {
+    window.addEventListener('load',downloadJSAtOnLoad, false)
+  } else if (window.attachEvent) {
+    window.attachEvent("onload",downloadJSAtOnLoad)
+  } else window.onload =downloadJSAtOnLoad
+</script>
 </body>
 </html>
