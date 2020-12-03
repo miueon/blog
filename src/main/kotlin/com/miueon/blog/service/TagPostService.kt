@@ -113,16 +113,17 @@ class TagPostServiceImpl : TagPostService {
             if (isPidExist(pid)) {
                 deleteByPid(pid)
             }
-            val validateTagsIds = tagMapper.selectBatchIds(tagIdList).map { it.id }.toList()
-            val insertList = validateTagsIds
-                    .map {
-                        val temp = PostTagsDO()
-                        temp.pid = pid
-                        temp.tid = it!!
-                        temp
-                    }.toList()
-            insertList.forEach { postTagsMapper.insert(it) }
-
+            if (tagIdList.isNotEmpty()) {
+                val validateTagsIds = tagMapper.selectBatchIds(tagIdList).map { it.id }.toList()
+                val insertList = validateTagsIds
+                        .map {
+                            val temp = PostTagsDO()
+                            temp.pid = pid
+                            temp.tid = it!!
+                            temp
+                        }.toList()
+                insertList.forEach { postTagsMapper.insert(it) }
+            }
         } catch (e: RuntimeException) {
             throw ApiException(e, HttpStatus.INTERNAL_SERVER_ERROR)
         }

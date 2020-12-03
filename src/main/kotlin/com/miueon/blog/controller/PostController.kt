@@ -12,8 +12,10 @@ import com.miueon.blog.service.DELETEKEY
 import com.miueon.blog.service.PostService
 import com.miueon.blog.service.TagPostService
 import com.miueon.blog.service.impl.RedisServiceImpl
+
 import com.miueon.blog.util.Page4Navigator
 import com.miueon.blog.util.Reply
+import com.miueon.blog.util.TocSub
 import io.swagger.annotations.Api
 import io.swagger.annotations.ApiOperation
 import io.swagger.annotations.ApiParam
@@ -51,6 +53,11 @@ class PostController {
 
     class postCache
 
+    private fun getHtmlAndToc(content: String): Pair<String, String> {
+        val document = TocSub.PARSER.parse(content)
+        return TocSub.RENDERER.render(document) to TocSub.TOC_HTML.get(document)
+    }
+
     /**
      * get post by id.
      * @param id
@@ -58,7 +65,7 @@ class PostController {
       */
     @ApiOperation("get post by id in PathVariable")
     @GetMapping("/{id}")
-    fun getPost(@PathVariable id: Int): ResponseEntity<Reply<PostDO>> {
+    fun getPost(@PathVariable id: Int, @RequestParam(value = "change", defaultValue = "false") change:Boolean?): ResponseEntity<Reply<PostDO>> {
         log.debug("REST request to get Post : {}", id)
         // redisService.del(RedisConfig.REDIS_KEY_DATABASE +"post$id")
 //        var post = redisService[RedisConfig.REDIS_KEY_DATABASE + "post$id"]
@@ -70,8 +77,16 @@ class PostController {
 //            post = tmp
 //        }
         val post = postService.findForId(id)
+
         post.view += 1
         postService.updatePost(post, post.id!!)
+        when (change) {
+            false -> {
+                val (body, toc) = getHtmlAndToc(post.body!!)
+                post.body = body
+                post.toc = toc
+            }
+        }
         // todo: replace this with spring-boot schedule & redis. and check whether the guest is admin
         return ResponseEntity(Reply.success(post), HttpStatus.OK)
     }

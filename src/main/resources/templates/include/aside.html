@@ -1,6 +1,13 @@
 <script src="https://cdn.jsdelivr.net/npm/vue@2.6.12"></script>
 <div th:fragment="html" xmlns:th="http://www.thymeleaf.org">
   <aside class="col-md-4">
+    <div class="widget widget-content" v-if="toc">
+      <h3 class="widget-title">Table of contents</h3>
+      <div class="toc">
+        <div v-html="toc"></div>
+      </div>
+    </div>
+
     <div class="widget widget-recent-posts">
       <h3 class="widget-title">最新文章</h3>
       <ul>
