@@ -9,6 +9,7 @@ import com.miueon.blog.mpg.mapper.TagsMapper
 import com.miueon.blog.mpg.model.PostDO
 import com.miueon.blog.mpg.model.PostTagsDO
 import com.miueon.blog.mpg.model.TagsDO
+import com.miueon.blog.pojo.IdList
 import com.miueon.blog.util.ApiException
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
@@ -21,7 +22,8 @@ import kotlin.reflect.KMutableProperty1
 interface TagPostService {
     fun getTagListByPostId(pid: Int): List<TagsDO>
     fun getPostListByTagId(tid: Int): List<PostDO>
-    fun getPostCountByTid(tid: Int):Int
+    fun getPostIdsByTags(idList: IdList): IdList
+    fun getPostCountByTid(tid: Int): Int
     fun savePostTagRel(pid: Int, tagIdList: List<Int>)
     fun deleteByPid(pid: Int)
     fun deleteByTid(tid: Int)
@@ -39,6 +41,16 @@ class TagPostServiceImpl : TagPostService {
     lateinit var postTagsMapper: PostTagsMapper
 
     private val logger = LoggerFactory.getLogger(this.javaClass)
+
+    override fun getPostIdsByTags(idList: IdList): IdList {
+        val idSet: MutableSet<Int> = HashSet()
+        idList.forEach { item ->
+            val ktQueryWrapper = KtQueryWrapper(PostTagsDO::class.java)
+            ktQueryWrapper.eq(PostTagsDO::tid, item)
+            idSet.addAll(postTagsMapper.selectList(ktQueryWrapper).map { it.pid })
+        }
+        return idSet.toList()
+    }
 
     override fun getPostCountByTid(tid: Int): Int {
         val ktQueryWrapper = KtQueryWrapper(PostTagsDO::class.java)
@@ -59,7 +71,7 @@ class TagPostServiceImpl : TagPostService {
         POSTBYTAG(PostTagsDO::tid, PostTagsDO::pid)
     }
 
-    private fun <T> getById(id: Int, fields:Either): List<T> {
+    private fun <T> getById(id: Int, fields: Either): List<T> {
         try {
             val ktQueryWrapper = KtQueryWrapper(PostTagsDO::class.java)
 //            var field: KMutableProperty1<PostTagsDO, Int>
@@ -104,11 +116,11 @@ class TagPostServiceImpl : TagPostService {
             val validateTagsIds = tagMapper.selectBatchIds(tagIdList).map { it.id }.toList()
             val insertList = validateTagsIds
                     .map {
-                val temp = PostTagsDO()
-                temp.pid = pid
-                temp.tid = it!!
-                temp
-            }.toList()
+                        val temp = PostTagsDO()
+                        temp.pid = pid
+                        temp.tid = it!!
+                        temp
+                    }.toList()
             insertList.forEach { postTagsMapper.insert(it) }
 
         } catch (e: RuntimeException) {

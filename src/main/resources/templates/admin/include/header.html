@@ -26,8 +26,8 @@
   <link rel="stylesheet" href="/css/dashboard.css">
   <link rel="stylesheet" href="/css/responsive.css">
   <link rel="stylesheet" href="/css/changelists.css">
-  <link rel="stylesheet" href="/css/forms.css">
-  <link rel="stylesheet" href="/css/widgets.css">
+  <link rel="stylesheet" type="text/css" href="/css/forms.css">
+  <link rel="stylesheet" type="text/css" href="/css/widgets.css">
   <script>
     function getToken() {
       let token = sessionStorage.getItem('__AUTH__')
@@ -119,6 +119,13 @@
             console.log(error)
             window.location.href = '/'
           })
+        },
+        formDate: function (value) {
+          if (value === null) {
+            return ""
+          }
+          let formatString = 'YYYY-MM-DD HH:mm:ss'
+          return moment(value).format(formatString)
         },
         logout: function () {
           console.log("logout")

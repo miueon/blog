@@ -3,9 +3,8 @@ package com.miueon.blog.controller
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page
 import com.miueon.blog.mpg.model.CategoryDO
-import com.miueon.blog.service.CategoryService
-import com.miueon.blog.service.PostService
-import com.miueon.blog.service.RedisService
+import com.miueon.blog.pojo.IdList
+import com.miueon.blog.service.*
 import com.miueon.blog.util.ApiException
 import com.miueon.blog.util.Page4Navigator
 import com.miueon.blog.util.Reply
@@ -31,6 +30,10 @@ class CategoryController {
 
     @Autowired
     lateinit var postService: PostService
+
+    @Autowired
+    lateinit var bulkDelete: BulkDelete
+
     private var logger = LoggerFactory.getLogger(this.javaClass)
 
     private val category = "category"
@@ -78,33 +81,20 @@ class CategoryController {
         return authentication.name + category
     }
 
-    data class idList(val ids: List<Int>)
+
     @PostMapping("/bulk_delete")
-    fun bulkDeletePrep(@RequestBody idList: idList): Reply<Unit> {
-        try {
-            val key = getDeleteKey()
-            if (redisService.sMembers(key) != null) {
-                redisService.del(key)
-            }
-            redisService.sAdd(key, 3600, *idList.ids.toTypedArray())
-        } catch (e: RuntimeException) {
-            throw ApiException(e, HttpStatus.BAD_REQUEST)
-        }
+    fun bulkDeletePrep(@RequestBody idList: IdList): Reply<Unit> {
+        bulkDelete.prepToDelete(idList, DELETEKEY.CATEGORY)
         return Reply.success()
     }
 
     @GetMapping("/bulk_delete")
     fun bulkDeleteInfo(): Reply<List<CategoryDO>> {
         try {
-            val key = getDeleteKey()
-            val ids: Set<Int> = redisService.sMembers(key) as Set<Int>?
-                    ?: throw ApiException("no object to be deleted.")
-            if (ids.isEmpty()) {
-                throw ApiException("no object to be deleted.")
-            }
+            val ids = bulkDelete.getDeleteInfo(DELETEKEY.CATEGORY)
             logger.info(" ids: {}", ids)
             val resultList = categoryService.getDeleteInfo(ids)
-            resultList.forEach{
+            resultList.forEach {
                 it.postCount = postService.getPostCountByCid(it.id!!)
             }
             return Reply.success(resultList)
@@ -113,7 +103,13 @@ class CategoryController {
         } catch (e: RuntimeException) {
             throw ApiException(e, HttpStatus.BAD_REQUEST)
         }
+    }
 
+    @DeleteMapping("/bulk_delete")
+    fun bulkDelete(): Reply<Unit> {
+        val ids = bulkDelete.getDeleteInfo(DELETEKEY.CATEGORY)
+        categoryService.bulkDelete(ids)
+        return Reply.success()
     }
 
     @PutMapping("/{id}")
@@ -126,21 +122,7 @@ class CategoryController {
         return Reply.success()
     }
 
-    @DeleteMapping("/bulk_delete")
-    fun bulkDelete(): Reply<Unit> {
-        try {
-            val key = getDeleteKey()
-            val ids: Set<Int> = redisService.sMembers(key) as Set<Int>?
-                    ?: throw ApiException("no object to be deleted.")
-            categoryService.bulkDelete(ids)
 
-        } catch (e: ApiException) {
-            throw e
-        } catch (e: RuntimeException) {
-            throw ApiException(e, HttpStatus.BAD_REQUEST)
-        }
-        return Reply.success()
-    }
 
     @DeleteMapping("/{id}")
     fun deleteCategory(@PathVariable id: Int): Reply<Unit> {

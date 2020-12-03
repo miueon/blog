@@ -3,8 +3,12 @@ package com.miueon.blog.controller
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page
 import com.miueon.blog.config.RedisConfig
 import com.miueon.blog.exceptions.ApiException
+import com.miueon.blog.mpg.model.CategoryDO
 import com.miueon.blog.mpg.model.PostDO
+import com.miueon.blog.pojo.IdList
 import com.miueon.blog.pojo.post
+import com.miueon.blog.service.BulkDelete
+import com.miueon.blog.service.DELETEKEY
 import com.miueon.blog.service.PostService
 import com.miueon.blog.service.TagPostService
 import com.miueon.blog.service.impl.RedisServiceImpl
@@ -23,6 +27,7 @@ import java.io.BufferedInputStream
 import java.io.File
 import java.io.FileInputStream
 import java.io.IOException
+import java.lang.RuntimeException
 import java.net.ConnectException
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
@@ -38,6 +43,9 @@ class PostController {
 
     @Autowired
     lateinit var redisService: RedisServiceImpl
+
+    @Autowired
+    lateinit var bulkDelete: BulkDelete
 
     private var log = LoggerFactory.getLogger(this.javaClass)
 
@@ -73,7 +81,9 @@ class PostController {
     fun getPostList(@RequestParam(value = "start", defaultValue = "1")
                     @ApiParam("page number") start: Int,
                     @RequestParam(value = "size", defaultValue = "5")
-                    @ApiParam("each page size") size: Int)
+                    @ApiParam("each page size") size: Int,
+                    @RequestParam(value = "cid") cid:Int?
+    )
             : ResponseEntity<Reply<Page4Navigator<PostDO>>> {
 
         /* print("test")
@@ -85,11 +95,52 @@ class PostController {
              redisService[RedisConfig.REDIS_KEY_DATABASE + "posts${myPage!!.page}.${myPage.size}"] = tmp
              posts = tmp
          }*/
-
+        log.info(" cid: {}", cid)
         val pages = postService.findAllByOrderByCreatedDateDescPage(Page(start.toLong(), size.toLong()),
-                5)
+                5, cid)
 
         return ResponseEntity(Reply.success(pages), HttpStatus.OK)
+    }
+
+    @PostMapping("/tags")
+    fun getPostListByTags(@RequestParam(value = "start", defaultValue = "1")
+                          @ApiParam("page number") start: Int,
+                          @RequestParam(value = "size", defaultValue = "5")
+                          @ApiParam("each page size") size: Int,
+                          @RequestBody tags:IdList
+                          )
+            : ResponseEntity<Reply<Page4Navigator<PostDO>>> {
+        val pids = tagPostService.getPostIdsByTags(tags)
+        val pages = postService.findByIdsOrderByCreatedDateDescPage(
+                Page(start.toLong(), size.toLong()),
+                5, pids)
+        return ResponseEntity(Reply.success(pages), HttpStatus.OK)
+    }
+
+    @PostMapping("/bulk_delete")
+    fun bulkDeletePrep(@RequestBody idList: IdList): Reply<Unit> {
+        bulkDelete.prepToDelete(idList, DELETEKEY.POST)
+        return Reply.success()
+    }
+
+    @GetMapping("/bulk_delete")
+    fun bulkDeleteInfo(): Reply<List<PostDO>> {
+        try {
+            val ids = bulkDelete.getDeleteInfo(DELETEKEY.POST)
+            val resultList = postService.findForIds(ids.toList())
+            return Reply.success(resultList)
+        } catch (e: ApiException) {
+            throw e
+        } catch (e: RuntimeException) {
+            throw ApiException(e, HttpStatus.BAD_REQUEST)
+        }
+    }
+
+    @DeleteMapping("/bulk_delete")
+    fun bulkDelete(): Reply<Unit> {
+        val ids = bulkDelete.getDeleteInfo(DELETEKEY.POST)
+        postService.bulkDelete(ids.toList())
+        return Reply.success()
     }
 
     data class keywordDto(val keyword: String)

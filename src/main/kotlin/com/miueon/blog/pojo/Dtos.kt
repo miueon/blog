@@ -13,3 +13,6 @@ data class postE(
         var content: String? = null,
         var title: String?= null
 )
+
+
+typealias IdList = List<Int>

@@ -15,9 +15,141 @@
           <label>Action:
             <button class="btn btn-danger" @click="bulk_delete">Delete</button>
           </label>
+          <span class="action-counter" style="display: inline;">
+            {{"you have choose " + selected_ids.length + " of " + posts.length }}
+            <!--            -->
+          </span>
+        </div>
 
+        <div class="results">
+          <table id="result_list">
+            <thead>
+            <tr>
+              <th scope="col" class="action-checkbox-column">
+                <div class="text">
+                  <span><input type="checkbox" @click="select_all" value="true" v-model="selected_all"></span>
+                </div>
+                <div class="clear"></div>
+              </th>
+              <th scope="col">
+                <div class="text"><span>Title</span></div>
+              </th>
+              <th scope="col">
+                <div class="text"><span>Created date</span></div>
+              </th>
+              <th scope="col">
+                <div class="text"><span>Modified date</span></div>
+              </th>
+              <th scope="col">
+                <div class="text"><span>Views</span></div>
+              </th>
+              <th scope="col">
+                <div class="text"><span>vue</span></div>
+              </th>
+              <th scope="col">
+                <div class="text"><span>Author</span></div>
+              </th>
+            </tr>
+            </thead>
+
+            <tbody v-for="(item, index) in posts">
+              <tr v-bind:class="{row1:index % 2 === 0, row2: index % 2 !== 0}">
+                <td class="action-checkbox">
+                  <input type="checkbox" v-bind:value="item.id" v-model="selected_ids">
+                </td>
+                <th>
+                  <a :href="'/admin/blog/post/add?change=' + item.id">{{item.title}}</a>
+                </th>
+                <th><p>{{formDate(item.createdDate)}}</p></th>
+                <th><p>{{formDate(item.modifiedDate)}}</p></th>
+                <th><p>{{item.view}}</p></th>
+                <th><p>{{item.category.name}}</p></th>
+                <th><p>{{item.createdBy}}</p></th>
+              </tr>
+            </tbody>
+          </table>
         </div>
       </form>
+      <div th:replace="admin/include/pagination::html"></div>
     </div>
   </div>
+
+  <script type="text/babel">
+    let vue
+    $(function () {
+      vue = new Vue({
+        el: "#container",
+        mixins: [mixin_auth],
+        data() {
+          return {
+            uri: '/api/post',
+            msg: "",
+            alert: false,
+            posts: [],
+            selected_ids: [],
+            selected_all: false,
+
+            pagination: {
+              current: 0,
+              isHasContent: false,
+              isHasNext: false,
+              isHasPrevious: false,
+              navigatePageNums: [],
+              navigatePages: 0,
+              totalPages: 0
+            },
+          }
+        },
+        mounted: function () {
+          this.load(1)
+          this.getuser()
+        },
+        methods: {
+          load: function (page) {
+            let url = this.uri
+            axios.get(`${url}?start=${page}&size=20`).then(function (response) {
+              vue.posts = response.data.payload.content
+              vue.pagination = response.data.payload
+            }).catch(function (error) {
+              vue.alert = true
+              vue.msg = "error occurs when trying to get posts"
+              show_message(vue)
+            });
+          },
+          bulk_delete: function () {
+            axios.post(`${vue.uri}/bulk_delete`, {
+              ids: vue.selected_ids
+            }, {
+              headers: {
+                Authorization: getToken()
+              }
+            }).then(function (response) {
+              window.location.href = "/admin/blog/vue/delete"
+            }).catch(function (err) {
+              let data = err.response.data
+              vue.msg = data.msg
+              vue.alert = true
+              show_message(vue)
+            });
+          },
+          select_all: function () {
+            if (vue.selected_all)  {
+              vue.selected_ids = [];
+              vue.selected_all = false
+            } else {
+              vue.selected_ids = [];
+              vue.categories.forEach((item) => {vue.selected_ids.push(item.id)})
+            }
+          },
+
+          jump: function (page) {
+            jump(page, vue)
+          },
+          jumpByNumber: function (page) {
+            jumpByNumber(page, vue)
+          }
+        }
+      })
+    })
+  </script>
 </div>

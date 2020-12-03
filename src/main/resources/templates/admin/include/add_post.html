@@ -5,7 +5,7 @@
   <div id="content" class="colM">
     <h1>Add Post</h1>
     <div id="content-main">
-      <form id="post_form">
+      <form >
         <div>
           <fieldset class="module aligned">
             <div class="form-row field-title">
@@ -56,10 +56,12 @@
             </div>
           </fieldset>
           <div class="submit-row">
-            <button class="btn btn-danger" type="submit" @click="delete_this" v-if="change">Delete</button>
-            <button class="btn btn-default" type="submit" @click="save">Save</button>
-            <button type="submit" class="btn btn-default" @click="save_add">Save & Add again</button>
-            <button type="submit" class="btn btn-default" @click="save_edit">Save & edit</button>
+            <p class="deletelink-box">
+              <button class="btn btn-danger"  type="button" @click="delete_this" v-if="change">Delete</button>
+            </p>
+            <button class="btn btn-default"  type="button" @click="save">Save</button>
+            <button  class="btn btn-default"  type="button" @click="save_add">Save & Add again</button>
+            <button  class="btn btn-default"  type="button" @click="save_edit">Save & edit</button>
           </div>
         </div>
       </form>

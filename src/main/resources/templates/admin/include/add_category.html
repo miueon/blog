@@ -1,32 +1,43 @@
 <script src="https://cdn.jsdelivr.net/npm/vue@2.6.12"></script>
 <div th:fragment="html" xmlns:th="http://www.thymeleaf.org">
-  <div th:replace="message_line::html"></div>
+  <ul class="messagelist" v-show="msg.length > 0">
+    <li class="success" v-if="!alert">
+      <p v-html="msg"></p>
+    </li>
+    <li class="error" v-else>
+      <p v-html="msg"></p>
+    </li>
+  </ul>
 
   <div id="content" class="colMS">
     <h1>Add category</h1>
     <div id="content-main">
+
       <ul class="object-tools" v-if="change">
         <li>
-          <a :href="'/admin/blog/post?cid='+ id" class="addlink">posts</a>
+          <a :href="'/admin/blog/post?cid='+ id" class="addlink">related posts</a>
         </li>
       </ul>
-      <div>
-        <fieldset class="module aligned ">
-          <div class="form-row field-name">
-            <div>
-              <label class="required" for="id_name">Category name:</label>
-              <input type="text" v-model="name" class="vTextField" maxlength="100" required id="id_name">
+      <form id="category_form">
+        <div>
+          <fieldset class="module aligned ">
+            <div class="form-row field-name">
+              <div>
+                <label class="required" for="id_name">Category name:</label>
+                <input type="text" v-model="name" class="vTextField" maxlength="100" required id="id_name">
+              </div>
             </div>
+          </fieldset>
+          <div class="submit-row">
+            <p class="deletelink-box">
+              <button class="btn btn-danger"  type="button" @click="delete_this" v-if="change">Delete</button>
+            </p>
+            <button class="btn btn-default" type="button" @click="save">Save</button>
+            <button type="button" class="btn btn-default" @click="save_add">Save & Add again</button>
+            <button type="button" class="btn btn-default" @click="save_edit">Save & edit</button>
           </div>
-        </fieldset>
-        <div class="submit-row">
-          <button class="btn btn-danger" type="submit" @click="delete_this" v-if="change">Delete</button>
-          <button class="btn btn-default" type="submit" @click="save">Save</button>
-          <button type="submit" class="btn btn-default" @click="save_add">Save & Add again</button>
-          <button type="submit" class="btn btn-default" @click="save_edit">Save & edit</button>
         </div>
-      </div>
-
+      </form>
     </div>
   </div>
   <script type="text/babel" data-type="module">

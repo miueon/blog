@@ -3,6 +3,7 @@ package com.miueon.blog.service
 import com.auth0.jwt.JWT
 import com.auth0.jwt.algorithms.Algorithm
 import com.baomidou.mybatisplus.extension.kotlin.KtQueryWrapper
+import com.miueon.blog.mpg.mapper.AuthorityMapper
 import com.miueon.blog.mpg.mapper.UserMapper
 import com.miueon.blog.mpg.model.UserDO
 import com.miueon.blog.pojo.user
@@ -23,7 +24,7 @@ import java.util.*
 @Service
 class UserService
 @Autowired
-constructor(var userMapper: UserMapper) : UserDetailsService {
+constructor(var userMapper: UserMapper, var authorityMapper: AuthorityMapper) : UserDetailsService {
 
     val passwordEncoder: PasswordEncoder = PasswordEncoderFactories.createDelegatingPasswordEncoder()
 
@@ -33,6 +34,7 @@ constructor(var userMapper: UserMapper) : UserDetailsService {
      */
     // @todo: get user info from db
     override fun loadUserByUsername(username: String): UserDetails {
+
         return User.builder().username("Crux")
                 .password(passwordEncoder.encode("123456")).roles("ADMIN", "USER").build()
     }

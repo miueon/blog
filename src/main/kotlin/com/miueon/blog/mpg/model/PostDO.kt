@@ -74,5 +74,9 @@ class PostDO {
                 ", cid=" + cid +
                 "}"
     }
+
+    override fun hashCode(): Int {
+        return Objects.hash(id, uid, title, body)
+    }
 }
 

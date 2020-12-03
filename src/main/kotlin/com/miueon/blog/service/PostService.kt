@@ -7,6 +7,7 @@ import com.miueon.blog.mpg.mapper.CategoryMapper
 import com.miueon.blog.mpg.mapper.PostMapper
 import com.miueon.blog.mpg.model.CategoryDO
 import com.miueon.blog.mpg.model.PostDO
+import com.miueon.blog.pojo.IdList
 import com.miueon.blog.util.ApiException
 
 import com.miueon.blog.util.Page4Navigator
@@ -47,7 +48,7 @@ class PostService(@Autowired
                 postMapper.selectCount(ktQueryWrapper)
             }
             else -> {
-               ktQueryWrapper.eq(PostDO::cid, cid)
+                ktQueryWrapper.eq(PostDO::cid, cid)
                 postMapper.selectCount(ktQueryWrapper)
             }
         }
@@ -57,7 +58,7 @@ class PostService(@Autowired
         val ktQueryWrapper = KtQueryWrapper(PostDO::class.java)
         ktQueryWrapper.orderByDesc(PostDO::createdDate)
         val result = postMapper.selectPage(page, ktQueryWrapper)
-        return  result
+        return result
     }
 
     fun findForId(id: Int): PostDO {
@@ -103,9 +104,12 @@ class PostService(@Autowired
     }
 
 
-
     fun findForIds(ids: List<Int>): List<PostDO> {
-        return postMapper.selectBatchIds(ids)
+        try {
+            return postMapper.selectBatchIds(ids)
+        }  catch (e: RuntimeException) {
+            throw ApiException(e, HttpStatus.BAD_REQUEST)
+        }
     }
 
     // todo: add category support
@@ -179,9 +183,20 @@ class PostService(@Autowired
     }
 
 
-    fun findAllByOrderByCreatedDateDescPage(page: Page<PostDO>, navigatePages: Int): Page4Navigator<PostDO> {
+    fun findAllByOrderByCreatedDateDescPage(page: Page<PostDO>, navigatePages: Int, cid: Int?): Page4Navigator<PostDO> {
         val ktQueryWrapper = KtQueryWrapper(PostDO::class.java)
+        if (cid != null) {
+            when (cid) {
+                0 -> ktQueryWrapper.isNull(PostDO::cid)
+                else -> ktQueryWrapper.eq(PostDO::cid, cid)
+            }
+        }
         ktQueryWrapper.orderByDesc(PostDO::createdDate)
+        return selectPage(page, ktQueryWrapper, navigatePages)
+    }
+
+    private inline fun selectPage(page: Page<PostDO>, ktQueryWrapper: KtQueryWrapper<PostDO>, navigatePages:Int)
+            : Page4Navigator<PostDO>{
         val result = postMapper.selectPage(page, ktQueryWrapper)
         result.records.map {
             it.createdBy = userService.selectById(it.uid!!).name
@@ -192,6 +207,13 @@ class PostService(@Autowired
             it.tags = tagPostService.getTagListByPostId(it.id!!)
         }
         return Page4Navigator(result, navigatePages)
+    }
+
+    fun findByIdsOrderByCreatedDateDescPage(page: Page<PostDO>, navigatePages: Int,pids:IdList)
+            : Page4Navigator<PostDO> {
+        val ktQueryWrapper = KtQueryWrapper(PostDO::class.java)
+        ktQueryWrapper.`in`(PostDO::id, pids).orderByDesc(PostDO::createdDate)
+        return selectPage(page, ktQueryWrapper, navigatePages)
     }
 
 //    fun findByKeyword(keyword: String): List<PostDTO>? {
@@ -231,5 +253,16 @@ class PostService(@Autowired
         // postEService.deletePostE(id.toString())
     }
 
+    @Transactional
+    fun bulkDelete(ids: IdList) {
+        try {
+            ids.forEach {
+                tagPostService.deleteByPid(it)
+            }
+            postMapper.deleteBatchIds(ids)
+        } catch (e: RuntimeException) {
+            throw ApiException(e, HttpStatus.INTERNAL_SERVER_ERROR)
+        }
+    }
 
 }

@@ -27,6 +27,10 @@ class UserDO {
     var name: String? = null
     var password: String? = null
     var salt: String? = null
+    var aid: Int? = null
+    var url:String? =null
+    @TableField(exist = false)
+    var role: String? = null
 
     @TableField("createdDate")
     var createdDate: LocalDateTime = LocalDateTime.now(ZoneId.of("+08:00"))
