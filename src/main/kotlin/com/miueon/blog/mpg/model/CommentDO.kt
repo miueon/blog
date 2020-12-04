@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.annotation.TableName
 import com.baomidou.mybatisplus.annotation.IdType
 import com.baomidou.mybatisplus.annotation.TableField
 import com.baomidou.mybatisplus.annotation.TableId
+import com.miueon.blog.mpg.CommentUserInfo
 import io.swagger.annotations.ApiModel
 import io.swagger.annotations.ApiModelProperty
 import java.time.LocalDateTime
@@ -30,6 +31,8 @@ class CommentDO {
     var createdDate: LocalDateTime = LocalDateTime.now(ZoneId.of("+08:00"))
     var content: String? = null
 
+    @TableField(exist = false)
+    var usr:CommentUserInfo? = null
 
     override fun toString(): String {
         return "CommentDO{" +

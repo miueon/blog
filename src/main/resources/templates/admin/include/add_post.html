@@ -104,7 +104,7 @@
           this.id = getUrlParms("change")
           if (this.id !== null) {
             this.id = Number.parseInt(this.id)
-            axios.get(`${this.uri}/${this.id}`, {
+            axios.get(`${this.uri}/${this.id}?change=true`, {
               headers: {
                 Authorization: getToken()
               }

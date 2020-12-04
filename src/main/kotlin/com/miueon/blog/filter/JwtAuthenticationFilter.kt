@@ -114,7 +114,6 @@ class JwtAuthenticationFilter(
         successHandler.onAuthenticationSuccess(request, response, authResult)
     }
 
-
     fun permissiveRequest(request: HttpServletRequest): Boolean {
         if (permissiveRequestMatchers == null) {
             return false

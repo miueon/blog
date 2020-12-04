@@ -3,10 +3,8 @@ package com.miueon.blog.controller
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page
 import com.miueon.blog.config.RedisConfig
 import com.miueon.blog.exceptions.ApiException
-import com.miueon.blog.mpg.model.CategoryDO
 import com.miueon.blog.mpg.model.PostDO
-import com.miueon.blog.pojo.IdList
-import com.miueon.blog.pojo.post
+import com.miueon.blog.mpg.IdList
 import com.miueon.blog.service.BulkDelete
 import com.miueon.blog.service.DELETEKEY
 import com.miueon.blog.service.PostService
@@ -31,7 +29,6 @@ import java.io.FileInputStream
 import java.io.IOException
 import java.lang.RuntimeException
 import java.net.ConnectException
-import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 
 @RestController
@@ -65,7 +62,8 @@ class PostController {
       */
     @ApiOperation("get post by id in PathVariable")
     @GetMapping("/{id}")
-    fun getPost(@PathVariable id: Int, @RequestParam(value = "change", defaultValue = "false") change:Boolean?): ResponseEntity<Reply<PostDO>> {
+    fun getPost(@PathVariable id: Int,
+                @RequestParam(value = "change", defaultValue = "false") change:Boolean?): ResponseEntity<Reply<PostDO>> {
         log.debug("REST request to get Post : {}", id)
         // redisService.del(RedisConfig.REDIS_KEY_DATABASE +"post$id")
 //        var post = redisService[RedisConfig.REDIS_KEY_DATABASE + "post$id"]
@@ -122,7 +120,7 @@ class PostController {
                           @ApiParam("page number") start: Int,
                           @RequestParam(value = "size", defaultValue = "5")
                           @ApiParam("each page size") size: Int,
-                          @RequestBody tags:IdList
+                          @RequestBody tags: IdList
                           )
             : ResponseEntity<Reply<Page4Navigator<PostDO>>> {
         val pids = tagPostService.getPostIdsByTags(tags)
@@ -188,15 +186,15 @@ class PostController {
         return Reply.success(postDO.id!!)
     }
 
-    @ApiOperation("add a new post")
-   // @PostMapping
-    fun writePost(title: String, md: MultipartFile): Reply<Unit> {
-        val preSavePost = postService.addPost(title)
-        preSavePost.body = saveMdFile(preSavePost.id!!, md)
-                ?: throw ApiException("Save md file failed")
-        postService.saveBody(preSavePost)
-        return Reply.success()
-    }
+//    @ApiOperation("add a new post")
+//   // @PostMapping
+//    fun writePost(title: String, md: MultipartFile): Reply<Unit> {
+//        val preSavePost = postService.addPost(title)
+//        preSavePost.body = saveMdFile(preSavePost.id!!, md)
+//                ?: throw ApiException("Save md file failed")
+//        postService.saveBody(preSavePost)
+//        return Reply.success()
+//    }
 
     private fun saveMdFile(id: Int, mdFile: MultipartFile): String? {
         var body: String? = null

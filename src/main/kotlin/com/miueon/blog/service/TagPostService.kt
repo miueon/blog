@@ -1,7 +1,5 @@
 package com.miueon.blog.service
 
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper
-import com.baomidou.mybatisplus.core.mapper.BaseMapper
 import com.baomidou.mybatisplus.extension.kotlin.KtQueryWrapper
 import com.miueon.blog.mpg.mapper.PostMapper
 import com.miueon.blog.mpg.mapper.PostTagsMapper
@@ -9,7 +7,7 @@ import com.miueon.blog.mpg.mapper.TagsMapper
 import com.miueon.blog.mpg.model.PostDO
 import com.miueon.blog.mpg.model.PostTagsDO
 import com.miueon.blog.mpg.model.TagsDO
-import com.miueon.blog.pojo.IdList
+import com.miueon.blog.mpg.IdList
 import com.miueon.blog.util.ApiException
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired

@@ -3,7 +3,7 @@ package com.miueon.blog.controller
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page
 import com.miueon.blog.mpg.model.CategoryDO
-import com.miueon.blog.pojo.IdList
+import com.miueon.blog.mpg.IdList
 import com.miueon.blog.service.*
 import com.miueon.blog.util.ApiException
 import com.miueon.blog.util.Page4Navigator

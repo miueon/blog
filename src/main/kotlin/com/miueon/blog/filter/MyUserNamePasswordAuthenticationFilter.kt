@@ -13,7 +13,9 @@ import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 
 class MyUserNamePasswordAuthenticationFilter :
-        AbstractAuthenticationProcessingFilter(AntPathRequestMatcher("/login", "POST")) {
+        AbstractAuthenticationProcessingFilter(
+                // filter post request for url "/login"
+                AntPathRequestMatcher("/login", "POST")) {
     override fun afterPropertiesSet() {
         Assert.notNull(authenticationManager, "Authentication manager must be specified")
         Assert.notNull(successHandler, "Success handler must be specified")
@@ -21,7 +23,7 @@ class MyUserNamePasswordAuthenticationFilter :
     }
 
     override fun attemptAuthentication(request: HttpServletRequest, response: HttpServletResponse): Authentication {
-        // in filter, the body can't be automatic parse
+        // in filter, the body can't be automatic parse, you need to do it manually
         val body = StreamUtils.copyToString(request.inputStream, StandardCharsets.UTF_8)
         var username:String? = null
         var password:String? = null

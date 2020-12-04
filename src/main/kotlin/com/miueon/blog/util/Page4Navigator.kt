@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page
 
 class Page4Navigator<T> {
     var content:MutableList<T>? = null
+
     var isHasContent:Boolean = false
     var isHasNext = false
     var isHasPrevious = false

@@ -7,11 +7,10 @@ import com.miueon.blog.mpg.mapper.CategoryMapper
 import com.miueon.blog.mpg.mapper.PostMapper
 import com.miueon.blog.mpg.model.CategoryDO
 import com.miueon.blog.mpg.model.PostDO
-import com.miueon.blog.pojo.IdList
+import com.miueon.blog.mpg.IdList
 import com.miueon.blog.util.ApiException
 
 import com.miueon.blog.util.Page4Navigator
-import io.swagger.annotations.Api
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
@@ -33,9 +32,9 @@ class PostService(@Autowired
 //                  @Autowired
 //                  var commentService: CommentService,
                   @Autowired
-                  var categoryMapper: CategoryMapper,
-                  @Autowired
-                  var postEService: PostEService
+                  var categoryMapper: CategoryMapper
+//                  @Autowired
+//                  var postEService: PostEService
 ) {
 
     var downloadMdPath: String = "E:/0.PROJECT/fullstack/Blog/src/main/resources/static/md"
@@ -113,13 +112,13 @@ class PostService(@Autowired
     }
 
     // todo: add category support
-    fun addPost(title: String): PostDO {
-        val post = PostDO()
-        post.title = title
-        post.uid = userService.getRawUser("crux").id
-        postMapper.insert(post)
-        return post
-    }
+//    fun addPost(title: String): PostDO {
+//        val post = PostDO()
+//        post.title = title
+//        post.uid = userService.getRawUser("crux").id
+//        postMapper.insert(post)
+//        return post
+//    }
 
     private inline fun setCid2null(postDO: PostDO) {
         if (postDO.cid == 0) {
@@ -130,7 +129,7 @@ class PostService(@Autowired
     @Transactional
     fun savePost(postDO: PostDO): PostDO {
         try {
-            postDO.uid = userService.getRawUser("crux").id
+            postDO.uid = userService.getRawUser("miueon").id
             val ktQueryWrapper = KtQueryWrapper(PostDO::class.java)
             ktQueryWrapper.eq(PostDO::title, postDO.title)
             if (postMapper.selectCount(ktQueryWrapper) > 0) {
@@ -209,7 +208,7 @@ class PostService(@Autowired
         return Page4Navigator(result, navigatePages)
     }
 
-    fun findByIdsOrderByCreatedDateDescPage(page: Page<PostDO>, navigatePages: Int,pids:IdList)
+    fun findByIdsOrderByCreatedDateDescPage(page: Page<PostDO>, navigatePages: Int,pids: IdList)
             : Page4Navigator<PostDO> {
         val ktQueryWrapper = KtQueryWrapper(PostDO::class.java)
         ktQueryWrapper.`in`(PostDO::id, pids).orderByDesc(PostDO::createdDate)

@@ -1,6 +1,6 @@
 package com.miueon.blog.service
 
-import com.miueon.blog.pojo.IdList
+import com.miueon.blog.mpg.IdList
 import com.miueon.blog.util.ApiException
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
