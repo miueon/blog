@@ -3,7 +3,7 @@
 <div class="container content-body" th:fragment="html" xmlns:th="http://www.thymeleaf.org">
   <div class="row">
     <main class="col-md-8">
-      <article class="post">
+      <article class="post" v-if="post">
         <header class="entry-header">
           <h1 class="entry-title">{{post.title}}</h1>
           <div class="entry-meta">
@@ -16,7 +16,7 @@
             </time></a></span>
 
             <span class="post-author"><a href="#">{{post.username}}</a></span>
-            <span class="comments-link"><a href="#comment-area">0 评论</a></span>
+            <span class="comments-link"><a href="#comment-area">{{post.commentCounts}} comments</a></span>
             <span class="views-count"><a href="#">{{post.view + "views"}}</a></span>
           </div>
         </header>
@@ -26,62 +26,73 @@
         <hr>
         <h3>Leave your comment</h3>
         <form action="#" method="post" class="comment-form">
-          <input type="hidden" name="csrfmiddlewaretoken"
-                 value="zCqFkFAAvw4U1cYZgwP0fuElDBHLDqp1vUeVqmA5wARkuB4cuvJnoxU5GwTtVeJ2">
           <div class="row">
-            <div class="col-md-4">
-              <label for="id_name">名字：</label>
-              <input type="text" name="name" maxlength="50" required="" id="id_name">
-            </div>
-            <div class="col-md-4">
-              <label for="id_email">邮箱：</label>
-              <input type="email" name="email" maxlength="254" required="" id="id_email">
-            </div>
-            <div class="col-md-4">
-              <label for="id_url">网址：</label>
-              <input type="url" name="url" maxlength="200" id="id_url">
+            <div v-if="!isAuthenticated">
+              <div class="col-md-4">
+                <label for="id_name">Name：</label>
+                <input type="text" name="name" maxlength="50"
+                       required="" id="id_name" v-model="comment_user.name">
+              </div>
+              <div class="col-md-4">
+                <label for="id_email">Email：</label>
+                <input type="email" name="email"
+                       maxlength="254" required="" id="id_email" v-model="comment_user.email">
+              </div>
+              <div class="col-md-4">
+                <label for="id_url">Web site：</label>
+                <input type="url" name="url" maxlength="200" id="id_url" v-model="comment_user.url">
+              </div>
             </div>
             <div class="col-md-12">
-              <label for="id_text">内容：</label>
-              <textarea name="text" cols="40" rows="10" required="" id="id_text" spellcheck="false"></textarea>
-              <button type="submit" class="comment-btn">发表</button>
+              <label for="id_text">Contents：</label>
+              <textarea name="text" v-model="new_comment"
+                        cols="40" rows="10" required="" id="id_text" spellcheck="false"></textarea>
+              <button type="button" class="comment-btn" @click="send">Send</button>
             </div>
           </div>    <!-- row -->
         </form>
         <div class="comment-list-panel">
-          <h3>评论列表，共 <span>0</span> 条评论</h3>
-          <ul class="comment-list list-unstyled">
-            暂无评论 # treat like a post
+          <h3>Comment list，now has <span>{{comments.length}}</span> comments</h3>
+          <ul class="comment-list list-unstyled" v-if="comments.length === 0">
+            There are no comments right now, may be you can leave the first one.
+          </ul>
+          <ul class="comment-list list-unstyled" >
+            <li class="comment-item" v-for="item in comments">
+              <span class="nickname">{{item.usr}}</span>
+              <time class="submit-date" >{{formDate(item.createdDate)}}</time>
+              <div class="text">
+                <div v-html="item.content"></div>
+              </div>
+            </li>
           </ul>
         </div>
       </section>
     </main>
 
 
-
-<!--    <div class="col-sm-3 col-sm-offset-1 blog-sidebar">-->
-<!--      <div class="sidebar-module">-->
-<!--        <a type="button" class="btn btn-default btn-lg" @click="delPost">-->
-<!--          <span class="glyphicon glyphicon-remove"></span>Delete post-->
-<!--        </a>-->
-<!--      </div>-->
-<!--      <div class="sidebar-module">-->
-<!--        <a type="button" class="btn btn-default btn-lg" :href="'newpost?pid='+pid">-->
-<!--          <span class="glyphicon glyphicon-check"></span>Update post-->
-<!--        </a>-->
-<!--      </div>-->
-<!--      <div class="sidebar-module">-->
-<!--        <a type="button" class="btn btn-default btn-lg" @click="downloadPost">-->
-<!--          <span class="glyphicon glyphicon-download-alt"></span>download post mdFile-->
-<!--        </a>-->
-<!--      </div>-->
-<!--    </div>-->
+    <!--    <div class="col-sm-3 col-sm-offset-1 blog-sidebar">-->
+    <!--      <div class="sidebar-module">-->
+    <!--        <a type="button" class="btn btn-default btn-lg" @click="delPost">-->
+    <!--          <span class="glyphicon glyphicon-remove"></span>Delete post-->
+    <!--        </a>-->
+    <!--      </div>-->
+    <!--      <div class="sidebar-module">-->
+    <!--        <a type="button" class="btn btn-default btn-lg" :href="'newpost?pid='+pid">-->
+    <!--          <span class="glyphicon glyphicon-check"></span>Update post-->
+    <!--        </a>-->
+    <!--      </div>-->
+    <!--      <div class="sidebar-module">-->
+    <!--        <a type="button" class="btn btn-default btn-lg" @click="downloadPost">-->
+    <!--          <span class="glyphicon glyphicon-download-alt"></span>download post mdFile-->
+    <!--        </a>-->
+    <!--      </div>-->
+    <!--    </div>-->
 
     <div th:replace="include/aside::html"></div>
   </div>
 
   <script>
-    $(function (){
+    $(function () {
       let pid = getUrlParms("pid")
       let detail = new Vue({
         el: "#workingArea",
@@ -94,22 +105,25 @@
             },
             pid: pid,
             uri: 'api/post/',
+            comment_uri: 'api/comment/',
             post: null,
             compiled_html: null,
             condition: false,
             toc: null,
+            comments: [],
+            new_comment: "",
+            comment_user: {
+              name: "",
+              email: "",
+              url: ""
+            }
           }
         },
         mounted: function () {
-          marked.setOptions({
-            highlight: function (code, lang) {
-              let result = hljs.highlight(lang, code).value
-              hljs.initLineNumbersOnLoad();
-              result = hljs.lineNumbersValue(result)
-              return result
-            }
-          })
           this.load()
+          this.getuser().then(function () {
+            detail.comment_user.name  = detail.user.name
+          });
         },
         methods: {
           load: function () {
@@ -117,7 +131,7 @@
             axios.get(url).then(function (response) {
               detail.post = response.data.payload
               detail.toc = detail.post.toc
-              detail.compiled_html =  detail.post.body
+              detail.compiled_html = detail.post.body
               detail.reply.code = Number.parseInt(response.data.code)
 
               detail.reply.msg = response.data.msg
@@ -126,9 +140,60 @@
               hljs.initHighlighting()
               hljs.initLineNumbersOnLoad();
               downloadJSAtOnLoad()
+            }).then(function () {
+              let url = detail.comment_uri + `post?pid=${pid}`
+              axios.get(url).then(function (response) {
+                detail.comments = response.data.payload
+              })
             });
             this.getCategories(this)
             this.getTags(this)
+          },
+          send: async function () {
+            if (detail.user.name.length === 0) {
+              if (detail.comment_user.name.length === 0) {
+                alert("the user name shouldn't be empty")
+                return
+              } else if (detail.comment_user.email.length === 0) {
+                alert("the eamil shouldn't be empty")
+                return
+              } else if (detail.comment_user.url.length === 0) {
+                alert("the url shouldn't be empty")
+                return
+              } else if (detail.new_comment.length === 0) {
+                alert("the content of comment shouldn't be empty")
+                return
+              }
+              detail.user.name = detail.comment_user.name;
+              detail.user.password = detail.comment_user.email
+              await detail.login()
+              if (!detail.isAuthenticated) {
+                await this.register()
+              }
+            }
+            if (detail.isAuthenticated) {
+              axios.post(this.comment_uri, {
+                pid: this.pid,
+                content: this.new_comment,
+                usr: this.user.name
+              }, {
+                headers: {
+                  Authorization: getToken()
+                }
+              }).then(function (response) {
+                alert("commented successfully")
+                detail.comments.unshift({
+                  usr: detail.user.name,
+                  createdDate: new Date(),
+                  content: detail.new_comment
+                })
+                detail.new_comment = ""
+                detail.post.commentCounts+=1
+              }).catch(error => {
+                alert(error.response.data.msg)
+              });
+
+            }
           },
           formDate: function (value) {
             if (value === null) {
@@ -136,13 +201,6 @@
             }
             let formatString = 'YYYY-MM-DD HH:mm:ss'
             return moment(value).format(formatString)
-          },
-          delPost: function () {
-            let url = this.uri + pid
-            axios.delete(url).then(function (response) {
-              // redirect to homePage
-              window.location.href = "/"
-            })
           },
           downloadPost: function () {
             let url = this.uri + `download?pid=${pid}`

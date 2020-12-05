@@ -47,6 +47,9 @@ class PostDO {
     var tags:List<TagsDO>? = null
     @TableField(exist = false)
     var toc:String? = null
+
+    @TableField(exist = false)
+    var commentCounts: Int = 0
     constructor()
     constructor(id: Int, uid: Int, title: String, body: String, createdDate: LocalDateTime,
                 createdBy: String,

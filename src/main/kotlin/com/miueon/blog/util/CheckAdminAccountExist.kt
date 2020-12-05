@@ -11,7 +11,7 @@ import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Component
 
 @Component
-class CheckAdmin : CommandLineRunner {
+class CheckAdminAccountExist : CommandLineRunner {
     @Autowired
     lateinit var userMapper: UserMapper
     val passwordEncoder: PasswordEncoder = PasswordEncoderFactories.createDelegatingPasswordEncoder()

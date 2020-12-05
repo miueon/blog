@@ -27,7 +27,7 @@ import javax.validation.constraints.NotEmpty
 class CommentDO(var pid: Int? = null,
                 var content: String? = null,
                 @TableField(exist = false)
-                var usr: CommentUserInfo? = null
+                var usr: String? = null
 ) {
 
     @TableId(value = "id", type = IdType.AUTO)

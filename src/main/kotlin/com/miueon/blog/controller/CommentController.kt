@@ -39,8 +39,6 @@ constructor(
             : Reply<List<CommentDO>> {
         val result = commentService.getAllCommentOfPost(pid)
         result.map {
-            it.usr?.email = null
-            it.usr?.url = null
             it.uid = null
         }
         return Reply.success(result)

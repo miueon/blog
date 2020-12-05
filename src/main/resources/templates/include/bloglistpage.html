@@ -9,7 +9,6 @@
         data() {
           return {
             uri: 'api/post',
-            auth_uri: 'auth/user',
             reply: {
               code: 0,
               msg: ""
@@ -91,7 +90,7 @@
               <span class="post-category"><a href="#">{{ps.category.name}}</a></span>
               <span class="post-date"><a href="#">{{formDate(ps.createdDate)}}</a></span>
               <span class="post-author"><a href="#">{{ps.userName}}</a></span>
-              <span class="comments-link"><a :href="'detail?pid=' + ps.id">#0 comments</a></span>
+              <span class="comments-link"><a :href="'detail?pid=' + ps.id">{{ps.commentCounts}} comments</a></span>
               <span class="views-count"><a :href="'detail?pid=' + ps.id">{{ps.view + "views"}}</a></span>
             </div>
           </header>

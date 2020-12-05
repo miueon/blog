@@ -57,7 +57,7 @@ enum class Role(val aid: Int) {
 //        fun getByValue(value:Int) = values.firstOrNull { it.aid == value }
 //    }
     companion object {
-        val reverseValues: Map<Int, Role> = values().associate { it.aid to it }
+        private val reverseValues: Map<Int, Role> = values().associate { it.aid to it }
         fun getByValue(value: Int) = reverseValues[value]!!
     }
 }

@@ -20,6 +20,7 @@ enum class DELETEKEY {
     COMMENT
 }
 
+
 @Service
 class BulkDeleteImpl : BulkDelete {
     @Autowired

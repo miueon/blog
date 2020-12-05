@@ -20,6 +20,7 @@ interface CommentService {
     fun getAllCommentOfPost(pid: Int):List<CommentDO>
     fun getComments(page: Page<CommentDO>, navigatePages:Int):Page4Navigator<CommentDO>
     fun getById(id:Int):CommentDO
+    fun getCountsByPid(pid: Int):Int
 
     fun getByIds(ids:IdList):List<CommentDO>
     fun bulkDelete(ids: IdList)
@@ -33,10 +34,15 @@ constructor(val commentMapper: CommentMapper,
             val postMapper: PostMapper,
             val userService: UserService)
     : CommentService {
+    override fun getCountsByPid(pid: Int): Int {
+        val ktQueryWrapper = KtQueryWrapper(CommentDO::class.java)
+        ktQueryWrapper.eq(CommentDO::pid, pid)
+        return commentMapper.selectCount(ktQueryWrapper)
+    }
 
     @Transactional
     override fun addComment(comment: CommentDO) {
-        val userName = comment.usr?.name!!
+        val userName = comment.usr
         val userDO =  userService.getRawUser(userName)
         comment.uid = userDO.id
         if (postMapper.selectById(comment.pid!!) == null) {
@@ -55,7 +61,12 @@ constructor(val commentMapper: CommentMapper,
     override fun getAllCommentOfPost(pid: Int): List<CommentDO> {
         val ktQueryWrapper = KtQueryWrapper(CommentDO::class.java)
         ktQueryWrapper.eq(CommentDO::pid, pid)
-        return commentMapper.selectList(ktQueryWrapper)
+        ktQueryWrapper.orderByDesc(CommentDO::createdDate)
+        val resultList =  commentMapper.selectList(ktQueryWrapper)
+        resultList.forEach {
+            it.usr = userService.selectById(it.uid!!).name
+        }
+        return resultList
     }
 
     override fun getComments(page: Page<CommentDO>, navigatePages: Int): Page4Navigator<CommentDO> {

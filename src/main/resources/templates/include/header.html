@@ -11,10 +11,9 @@
 
   <!--  new theme -->
   <link rel="stylesheet" href="https://code.ionicframework.com/ionicons/2.0.1/css/ionicons.min.css">
+
   <link rel="stylesheet" href="css/bnwtheme/pace.css">
   <link rel="stylesheet" href="css/bnwtheme/custom.css">
-
-
 
 
   <script src="js/bootstrap/3.3.6/bootstrap.min.js"></script>
@@ -26,14 +25,19 @@
   <!--  new js-->
   <script src="js/pace.min.js"></script>
 
-  <link rel="stylesheet"
-        href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/10.4.0/styles/default.min.css">
-  <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/10.4.0/highlight.min.js"></script>
-  <script src="https://cdn.bootcss.com/highlightjs-line-numbers.js/2.7.0/highlightjs-line-numbers.min.js"></script>
+<!--  <link rel="stylesheet"-->
+<!--        href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/10.4.0/styles/default.min.css">-->
+  <link rel="stylesheet" type="text/css" href="css/default.min.css">
+<!--  <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/10.4.0/highlight.min.js"></script>-->
+  <script src="js/highlight.min.js"></script>
+<!--  <script src="https://cdn.bootcss.com/highlightjs-line-numbers.js/2.7.0/highlightjs-line-numbers.min.js"></script>-->
+  <script src="js/highlightjs-line-numbers.min.js"></script>
   <link rel="stylesheet" href="css/bnwtheme/an-old-hope.min.css">
-  <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+<!--  <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>-->
+  <script src="js/polyfill.min.js"></script>
 
-  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<!--  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>-->
+  <script src="js/babel.min.js"></script>
   <style>
       .codehilite {
           padding: 0;
@@ -74,9 +78,11 @@
       .hljs-ln {
           border-collapse: collapse;
       }
+
       .hljs-ln td {
           padding: 0;
       }
+
       .hljs-ln-n:before {
           content: attr(data-line-number);
       }
@@ -190,16 +196,16 @@
           user: {
             name: "",
             password: "",
-            repeatpassword: "",
             isAdmin: false
           },
+          auth_uri: 'auth/user',
           rememberMe: false,
           isAuthenticated: false
         }
       },
       methods: {
         getuser: function () {
-          axios({
+          return axios({
             method: 'get',
             url: this.auth_uri,
             headers: {
@@ -227,10 +233,12 @@
           $('#registerModal').modal('show')
         },
         register: function () {
-
+          return axios.post("/auth/register", this.comment_user).then(this.login).catch(error => {
+            alert(error.response.data.msg)
+          })
         },
-        login: function () {
-          axios.post('/login', {
+        login: async function () {
+          return axios.post('/login', {
             username: this.user.name,
             password: this.user.password
           }).then(response => {
@@ -261,6 +269,8 @@
         },
         clearLoginInfo: function () {
           this.isAuthenticated = false
+          this.user.name = ""
+          this.user.password = ""
           localStorage.removeItem("__AUTH__")
           sessionStorage.removeItem("__AUTH__")
           this.user.isAdmin = false

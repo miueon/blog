@@ -4,11 +4,15 @@ import com.miueon.blog.mpg.model.CommentDO
 import com.miueon.blog.mpg.model.UserDO
 import com.miueon.blog.validator.Insert
 import com.miueon.blog.validator.Update
+import org.hibernate.validator.constraints.Length
+import org.hibernate.validator.constraints.Range
 import org.springframework.data.elasticsearch.annotations.Document
 import org.springframework.validation.annotation.Validated
 import java.util.*
 import javax.validation.Valid
 import javax.validation.constraints.NotEmpty
+import javax.validation.constraints.NotNull
+import javax.validation.constraints.Size
 import kotlin.reflect.KClass
 import kotlin.reflect.KParameter
 import kotlin.reflect.full.memberProperties
@@ -64,15 +68,17 @@ protected constructor(inClass: KClass<T>, outClass: KClass<R>) {
 //        }
 //    }
 //}
-
+// @NotEmpty is for string,collection, map or array.
 class CommentDTO(
-        @NotEmpty(message = "When you add a comment,it has to go somewhere.", groups = [Insert::class, Update::class])
+        @field:NotNull(message = "When you add a comment,it has to go somewhere.", groups = [Insert::class, Update::class])
+        @field:Range(min=1,  groups = [Insert::class, Update::class])
         var pid: Int? = null,
-        @NotEmpty(message = "you can't comment an empty", groups = [Insert::class, Update::class])
+        @field:NotEmpty(message = "you can't comment an empty", groups = [Insert::class, Update::class])
+        @field:Size(min = 1, max = 300, groups = [Insert::class, Update::class])
         var content: String? = null,
-        @Valid
-        @NotEmpty(message = "comments should have identity.", groups = [Insert::class])
-        var usr: CommentUserInfo? = null
+        @field:Valid
+        @field:NotEmpty(message = "comments should have identity.", groups = [Insert::class])
+        var usr: String? = null
 ) {
     companion object {
         val transformer = object : Transformer<CommentDTO, CommentDO>(CommentDTO::class, CommentDO::class) {}
@@ -92,8 +98,8 @@ class CommentUserInfo(@NotEmpty(message = "the name shouldn't be empty")
                       var email: String? = null,
                       @NotEmpty(message = "the url is also critical to identify")
                       var url: String? = null) {
-    companion object{
-        val transformer = object: Transformer<CommentUserInfo, UserDO>(CommentUserInfo::class, UserDO::class){}
+    companion object {
+        val transformer = object : Transformer<CommentUserInfo, UserDO>(CommentUserInfo::class, UserDO::class) {}
         fun fromDO(data: UserDO): CommentUserInfo {
             return transformer.reverseTransForm(data)
         }

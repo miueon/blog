@@ -20,11 +20,4 @@ class FrontPageController {
         return "blogdetailpage"
     }
 
-    @GetMapping("/newpost")
-    fun newpost(): String {
-        return "newpost"
-    }
-
-
-
 }

@@ -8,6 +8,7 @@ import com.miueon.blog.mpg.mapper.PostMapper
 import com.miueon.blog.mpg.model.CategoryDO
 import com.miueon.blog.mpg.model.PostDO
 import com.miueon.blog.mpg.IdList
+import com.miueon.blog.mpg.mapper.CommentMapper
 import com.miueon.blog.util.ApiException
 
 import com.miueon.blog.util.Page4Navigator
@@ -29,8 +30,8 @@ class PostService(@Autowired
                   var userService: UserService,
                   @Autowired
                   var tagPostService: TagPostService,
-//                  @Autowired
-//                  var commentService: CommentService,
+                  @Autowired
+                  var commentService: CommentService,
                   @Autowired
                   var categoryMapper: CategoryMapper
 //                  @Autowired
@@ -70,7 +71,7 @@ class PostService(@Autowired
                 null -> CategoryDO(0, "unClassified")
                 else -> categoryMapper.selectById(result.cid!!)
             }
-
+            result.commentCounts = commentService.getCountsByPid(id)
             result.tags = tagPostService.getTagListByPostId(result.id!!)
             return result
         } catch (e: ApiException) {
@@ -204,6 +205,7 @@ class PostService(@Autowired
                 else -> categoryMapper.selectByPrimaryKey(it.cid!!)
             }
             it.tags = tagPostService.getTagListByPostId(it.id!!)
+            it.commentCounts = commentService.getCountsByPid(it.id!!)
         }
         return Page4Navigator(result, navigatePages)
     }

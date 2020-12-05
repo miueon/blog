@@ -46,7 +46,7 @@ class WebSecurityConfig(
 
     override fun configure(http: HttpSecurity) {
         http.authorizeRequests()
-                .antMatchers("/auth/user/**").hasRole("USER")
+                .antMatchers("/auth/user/**").hasAnyRole("USER", "ADMIN")
                 .antMatchers("/auth/admin/**").hasRole("ADMIN")
              //   .antMatchers("/admin/api/**").hasRole("ADMIN")
 //                .antMatchers(AUTH_WHITELIST).permitAll()
