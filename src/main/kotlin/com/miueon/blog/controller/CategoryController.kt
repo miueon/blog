@@ -122,8 +122,6 @@ class CategoryController {
         return Reply.success()
     }
 
-
-
     @DeleteMapping("/{id}")
     fun deleteCategory(@PathVariable id: Int): Reply<Unit> {
         categoryService.deleteForId(id)

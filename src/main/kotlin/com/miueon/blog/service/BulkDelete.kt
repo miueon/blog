@@ -9,14 +9,15 @@ import org.springframework.stereotype.Service
 import java.lang.RuntimeException
 
 interface BulkDelete {
-    fun prepToDelete(idList: IdList, key: DELETEKEY)
+    fun prepToDelete(idList: IdList, k: DELETEKEY)
     fun getDeleteInfo(k: DELETEKEY): Set<Int>
 }
 
 enum class DELETEKEY {
     CATEGORY,
     POST,
-    TAG
+    TAG,
+    COMMENT
 }
 
 @Service

@@ -1,45 +1,115 @@
 package com.miueon.blog.mpg
 
+import com.miueon.blog.mpg.model.CommentDO
 import com.miueon.blog.mpg.model.UserDO
+import com.miueon.blog.validator.Insert
+import com.miueon.blog.validator.Update
 import org.springframework.data.elasticsearch.annotations.Document
+import org.springframework.validation.annotation.Validated
 import java.util.*
+import javax.validation.Valid
+import javax.validation.constraints.NotEmpty
+import kotlin.reflect.KClass
+import kotlin.reflect.KParameter
+import kotlin.reflect.full.memberProperties
+import kotlin.reflect.full.primaryConstructor
 
 class userDto(
         var name: String? = null,
         var isAdmin: Boolean = false
 )
 
-class CommentUserInfo {
-    var name: String? = null
-    var email: String? = null
-    var url: String? = null
-
-    fun toUserDO():UserDO {
-        val usr = UserDO()
-        usr.name = name
-        usr.email = email
-        usr.url = url
-        return usr
+/**
+ * @Author Miueon
+ * @Description // transform the data from one to another.
+ * the target class should has the desire constructor parameter
+ * @Date 3:06 p.m. 2020-12-05
+ **/
+open class Transformer<T : Any, R : Any>
+protected constructor(inClass: KClass<T>, outClass: KClass<R>) {
+    // get Constructor & filed names by reflection
+    private val outConstructor = outClass.primaryConstructor!!
+    private val inConstructor = inClass.primaryConstructor!!
+    private val inPropertiesByName by lazy {
+        inClass.memberProperties.associateBy { it.name }
+    }
+    private val outPropertiesByName by lazy {
+        outClass.memberProperties.associateBy { it.name }
     }
 
-    companion object {
-        fun fromUserDO(usr: UserDO): CommentUserInfo {
-            val cUsr = CommentUserInfo()
-            cUsr.name = usr.name
-            cUsr.email = usr.email
-            cUsr.url = usr.url
-            return cUsr
-        }
+    fun transform(data: T): R = with(outConstructor) {
+        // callBy can call the method with it default value by give in map of arguments
+        callBy(parameters.associateWith { parameter -> argFor(parameter, data) })
+    }
 
+    fun reverseTransForm(data: R): T = with(inConstructor) {
+        callBy(parameters.associateWith { reverseArgFor(it, data) })
+    }
+
+    open fun argFor(parameter: KParameter, data: T): Any? {
+        return inPropertiesByName[parameter.name]?.get(data)
+    }
+
+    open fun reverseArgFor(parameter: KParameter, data: R): Any? {
+        return outPropertiesByName[parameter.name]?.get(data)
+    }
+}
+
+//val personFormToPersonRecordTransformer = object
+//    : Transformer<PersonForm, PersonRecord>(PersonForm::class, PersonRecord::class) {
+//    override fun argFor(parameter: KParameter, data: PersonForm): Any? {
+//        return when (parameter.name) {
+//            "name" -> with(data) { "$firstName $lastName" }
+//            else -> super.argFor(parameter, data)
+//        }
+//    }
+//}
+
+class CommentDTO(
+        @NotEmpty(message = "When you add a comment,it has to go somewhere.", groups = [Insert::class, Update::class])
+        var pid: Int? = null,
+        @NotEmpty(message = "you can't comment an empty", groups = [Insert::class, Update::class])
+        var content: String? = null,
+        @Valid
+        @NotEmpty(message = "comments should have identity.", groups = [Insert::class])
+        var usr: CommentUserInfo? = null
+) {
+    companion object {
+        val transformer = object : Transformer<CommentDTO, CommentDO>(CommentDTO::class, CommentDO::class) {}
+        fun fromDO(data: CommentDO): CommentDTO {
+            return transformer.reverseTransForm(data)
+        }
+    }
+
+    fun transToDO(): CommentDO {
+        return transformer.transform(this)
+    }
+}
+
+class CommentUserInfo(@NotEmpty(message = "the name shouldn't be empty")
+                      var name: String? = null,
+                      @NotEmpty(message = "the email shouldn't be empty")
+                      var email: String? = null,
+                      @NotEmpty(message = "the url is also critical to identify")
+                      var url: String? = null) {
+    companion object{
+        val transformer = object: Transformer<CommentUserInfo, UserDO>(CommentUserInfo::class, UserDO::class){}
+        fun fromDO(data: UserDO): CommentUserInfo {
+            return transformer.reverseTransForm(data)
+        }
+    }
+
+    fun transToDO(): UserDO {
+        return transformer.transform(this)
     }
 
 }
 
-@Document(indexName="blog", type="article")
+@Document(indexName = "blog", type = "article")
 data class postE(
         var id: String? = null,
         var content: String? = null,
-        var title: String?= null
+        var title: String? = null
 )
 
 

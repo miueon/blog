@@ -5,10 +5,14 @@ import com.baomidou.mybatisplus.annotation.IdType
 import com.baomidou.mybatisplus.annotation.TableField
 import com.baomidou.mybatisplus.annotation.TableId
 import com.miueon.blog.mpg.CommentUserInfo
+import com.miueon.blog.validator.Insert
+import com.miueon.blog.validator.Update
 import io.swagger.annotations.ApiModel
 import io.swagger.annotations.ApiModelProperty
 import java.time.LocalDateTime
 import java.time.ZoneId
+import javax.validation.Valid
+import javax.validation.constraints.NotEmpty
 
 /**
  * <p>
@@ -20,19 +24,17 @@ import java.time.ZoneId
  */
 @TableName("comment")
 @ApiModel(value = "CommentDO对象", description = "")
-class CommentDO {
+class CommentDO(var pid: Int? = null,
+                var content: String? = null,
+                @TableField(exist = false)
+                var usr: CommentUserInfo? = null
+) {
 
     @TableId(value = "id", type = IdType.AUTO)
     var id: Int? = null
     var uid: Int? = null
-    var pid: Int? = null
-
     @TableField("createdDate")
     var createdDate: LocalDateTime = LocalDateTime.now(ZoneId.of("+08:00"))
-    var content: String? = null
-
-    @TableField(exist = false)
-    var usr:CommentUserInfo? = null
 
     override fun toString(): String {
         return "CommentDO{" +

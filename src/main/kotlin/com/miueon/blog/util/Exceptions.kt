@@ -29,26 +29,7 @@ class ApiException : RuntimeException {
     }
 }
 
-@ControllerAdvice
-class ApiExceptionHandler : ResponseEntityExceptionHandler() {
-    @ExceptionHandler(ApiException::class)
-    fun handleApiException(e: ApiException): ResponseEntity<Any?> {
-        return when (e.httpStatus) {
-            HttpStatus.NOT_FOUND ->
-                ResponseEntity(Reply.error(e.message ?: e.httpStatus.toString()), e.httpStatus)
-            HttpStatus.INTERNAL_SERVER_ERROR ->
-                ResponseEntity(Reply.error(e.message ?: e.httpStatus.toString()), e.httpStatus)
-            HttpStatus.BAD_REQUEST ->
-                ResponseEntity(Reply.error(e.message ?: e.httpStatus.toString()), e.httpStatus)
-            else -> handleException(e)
-        }
-    }
-    @ExceptionHandler(Exception::class)
-    fun handleException(e: Exception): ResponseEntity<Any?> {
-        val reply = Reply.error(HttpStatus.INTERNAL_SERVER_ERROR.toString())
-        return ResponseEntity(reply, HttpStatus.INTERNAL_SERVER_ERROR)
-    }
-}
+
 
 @ResponseStatus(HttpStatus.BAD_REQUEST)
 class BadRequestException : RuntimeException {

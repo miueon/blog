@@ -19,21 +19,21 @@ import java.time.ZoneId
  */
 @TableName("user")
 @ApiModel(value = "UserDO对象", description = "")
-class UserDO {
+class UserDO(
+        var name: String? = null,
+        var email: String? = null,
+        var url: String? = null
+) {
 
     @TableId(value = "id", type = IdType.AUTO)
     var id: Int? = null
-    var email: String? = null
-    var name: String? = null
     var password: String? = null
     var aid: Int? = null
-    var url:String? =null
     @TableField(exist = false)
     var role: String? = null
 
     @TableField("createdDate")
     var createdDate: LocalDateTime = LocalDateTime.now(ZoneId.of("+08:00"))
-
 
     override fun toString(): String {
         return "UserDO{" +
@@ -45,9 +45,10 @@ class UserDO {
                 "}"
     }
 }
+
 // even when we need more control of roles, we can code roles into bit array in Int
 // the authority table play as a aid checker.
-enum class Role(val aid: Int){
+enum class Role(val aid: Int) {
     ADMIN(1),
     USER(2);
 
@@ -57,7 +58,7 @@ enum class Role(val aid: Int){
 //    }
     companion object {
         val reverseValues: Map<Int, Role> = values().associate { it.aid to it }
-        fun getByValue(value:Int) = reverseValues[value]!!
+        fun getByValue(value: Int) = reverseValues[value]!!
     }
 }
 

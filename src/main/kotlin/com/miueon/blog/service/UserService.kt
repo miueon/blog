@@ -78,21 +78,15 @@ constructor(var userMapper: UserMapper, var redisService: RedisService) : UserDe
                         HttpStatus.BAD_REQUEST)
     }
 
-    fun addUser(usr: UserDO):UserDO {
-        try {
-            val ktQueryWrapper = KtQueryWrapper(UserDO::class.java)
-            ktQueryWrapper.eq(UserDO::name, usr.name)
-            if (userMapper.selectCount(ktQueryWrapper) != 0) {
-                throw ApiException("the user name for ${usr.name} already exist.",
-                        HttpStatus.BAD_REQUEST)
-            }
-            userMapper.insert(usr)
-            return usr
-        } catch (e: ApiException) {
-            throw  e
-        } catch (e: RuntimeException) {
-            throw ApiException(e, HttpStatus.INTERNAL_SERVER_ERROR)
+    fun addUser(usr: UserDO): UserDO {
+        val ktQueryWrapper = KtQueryWrapper(UserDO::class.java)
+        ktQueryWrapper.eq(UserDO::name, usr.name)
+        if (userMapper.selectCount(ktQueryWrapper) != 0) {
+            throw ApiException("the user name for ${usr.name} already exist.",
+                    HttpStatus.BAD_REQUEST)
         }
+        userMapper.insert(usr)
+        return usr
     }
 
     fun selectById(id: Int): UserDO {
