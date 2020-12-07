@@ -3,6 +3,7 @@ package com.miueon.blog.service
 import com.auth0.jwt.JWT
 import com.auth0.jwt.algorithms.Algorithm
 import com.baomidou.mybatisplus.extension.kotlin.KtQueryWrapper
+import com.miueon.blog.mpg.IdList
 import com.miueon.blog.mpg.mapper.AuthorityMapper
 import com.miueon.blog.mpg.mapper.UserMapper
 import com.miueon.blog.mpg.model.Role
@@ -117,5 +118,6 @@ constructor(var userMapper: UserMapper, var redisService: RedisService
             throw ApiException("User id: $id not exist.", HttpStatus.BAD_REQUEST)
         }
     }
+
 
 }

@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:include="admin/include/header::html"></head>
+
+<body class=" app-blog model-post change-list" data-admin-utc-offset="28800"
+      data-new-gr-c-s-check-loaded="14.984.0" data-gr-ext-installed="">
+
+<div th:replace="include/page_pace::html"></div>
+
+
+<div id="container">
+  <div th:replace="admin/include/top::html"></div>
+  <div class="breadcrumbs">
+    <a href="/admin/">Index</a>
+    › <a href="/admin/comment"> Comment</a>
+  </div>
+  <div th:replace="admin/include/comment::html"></div>
+</div>
+
+</body>
+</html>

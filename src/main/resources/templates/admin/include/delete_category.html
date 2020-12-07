@@ -36,7 +36,7 @@
 
         data() {
           return {
-            uri: '/api/category',
+            uri: '/api/category/bulk_delete',
             msg: "",
             alert: false,
             categories: [],
@@ -44,7 +44,7 @@
           }
         },
         mounted: function () {
-          axios.get(`${this.uri}/bulk_delete`, {
+          axios.get(`${this.uri}`, {
             headers: {
               Authorization: getToken()
             }

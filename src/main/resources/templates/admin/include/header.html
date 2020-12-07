@@ -120,6 +120,13 @@
             window.location.href = '/'
           })
         },
+        bodyAbbr: function (body) {
+          let cutLength = 35
+          if (body.length > cutLength) {
+            return body.substring(0, cutLength) + '...'
+          }
+          return body
+        },
         formDate: function (value) {
           if (value === null) {
             return ""

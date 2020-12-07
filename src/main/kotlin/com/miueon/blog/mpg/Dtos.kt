@@ -1,14 +1,12 @@
 package com.miueon.blog.mpg
 
 import com.miueon.blog.mpg.model.CommentDO
+import com.miueon.blog.mpg.model.PostDO
 import com.miueon.blog.mpg.model.UserDO
 import com.miueon.blog.validator.Insert
 import com.miueon.blog.validator.Update
-import org.hibernate.validator.constraints.Length
 import org.hibernate.validator.constraints.Range
 import org.springframework.data.elasticsearch.annotations.Document
-import org.springframework.validation.annotation.Validated
-import java.util.*
 import javax.validation.Valid
 import javax.validation.constraints.NotEmpty
 import javax.validation.constraints.NotNull
@@ -22,12 +20,14 @@ class userDto(
         var name: String? = null,
         var isAdmin: Boolean = false
 )
-
+data class IdListDTO(val ids:IdList)
 /**
- * @Author Miueon
- * @Description // transform the data from one to another.
+ * Author: Miueon
+ *
+ * Description: // transform the data from one to another.
  * the target class should has the desire constructor parameter
- * @Date 3:06 p.m. 2020-12-05
+ *
+ * Date:  3:06 p.m. 2020-12-05
  **/
 open class Transformer<T : Any, R : Any>
 protected constructor(inClass: KClass<T>, outClass: KClass<R>) {
@@ -69,6 +69,8 @@ protected constructor(inClass: KClass<T>, outClass: KClass<R>) {
 //    }
 //}
 // @NotEmpty is for string,collection, map or array.
+class PostTitle(var id:Int?, var title: String?)
+
 class CommentDTO(
         @field:NotNull(message = "When you add a comment,it has to go somewhere.", groups = [Insert::class, Update::class])
         @field:Range(min=1,  groups = [Insert::class, Update::class])

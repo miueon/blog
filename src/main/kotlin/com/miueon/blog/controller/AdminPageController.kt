@@ -60,19 +60,16 @@ class AdminPageController {
     }
 
 
-    @GetMapping("/comments/comment")
+    @GetMapping("/comment")
     fun comment(): String {
         return "admin/comment"
     }
 
-    @GetMapping("/comments/comment/add")
+    @GetMapping("/comment/add")
     fun addComment(): String {
         return "admin/addComment"
     }
 
-    @GetMapping("/comments/comment/delete")
-    fun deleteComment():String{
-        return "admin/deleteComment"
-    }
+
 
 }

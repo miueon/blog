@@ -6,7 +6,7 @@
     <h1>Click to modify</h1>
     <ul class="object-tools">
       <li>
-        <a href="/admin/blog/post/add" class="addlink">Add post</a>
+        <a href="/admin/comment/add" class="addlink">Add comment</a>
       </li>
     </ul>
     <div class="module" id="changelist">
@@ -16,7 +16,7 @@
             <button class="btn btn-danger" @click="bulk_delete">Delete</button>
           </label>
           <span class="action-counter" style="display: inline;">
-            {{"you have choose " + selected_ids.length + " of " + posts.length }}
+            {{"you have choose " + selected_ids.length + " of " + comments.length }}
             <!--            -->
           </span>
         </div>
@@ -27,45 +27,42 @@
             <tr>
               <th scope="col" class="action-checkbox-column">
                 <div class="text">
-                  <span><input type="checkbox" @click="select_all" value="true" v-model="selected_all"></span>
+                  <span><input type="checkbox" @click="select_all"
+                               value="true" v-model="selected_all"></span>
                 </div>
                 <div class="clear"></div>
               </th>
               <th scope="col">
-                <div class="text"><span>Title</span></div>
+                <div class="text"><span>name</span></div>
               </th>
               <th scope="col">
-                <div class="text"><span>Created date</span></div>
+                <div class="text"><span>email</span></div>
               </th>
               <th scope="col">
-                <div class="text"><span>Modified date</span></div>
+                <div class="text"><span>Abbr.</span></div>
               </th>
               <th scope="col">
-                <div class="text"><span>Views</span></div>
+                <div class="text"><span>post</span></div>
               </th>
               <th scope="col">
-                <div class="text"><span>vue</span></div>
-              </th>
-              <th scope="col">
-                <div class="text"><span>Author</span></div>
+                <div class="text"><span>created_date</span></div>
               </th>
             </tr>
             </thead>
 
-            <tbody v-for="(item, index) in posts">
-              <tr v-bind:class="{row1:index % 2 === 0, row2: index % 2 !== 0}">
-                <td class="action-checkbox">
-                  <input type="checkbox" v-bind:value="item.id" v-model="selected_ids">
-                </td>
-                <th>
-                  <a :href="'/admin/blog/post/add?change=' + item.id">{{bodyAbbr(item.title)}}</a>
-                </th>
-                <th><p>{{formDate(item.createdDate)}}</p></th>
-                <th><p>{{formDate(item.modifiedDate)}}</p></th>
-                <th><p>{{item.view}}</p></th>
-                <th><p>{{item.category.name}}</p></th>
-                <th><p>{{item.createdBy}}</p></th>
-              </tr>
+            <tbody v-for="(item, index) in comments">
+            <tr v-bind:class="{row1:index % 2 === 0, row2: index % 2 !== 0}">
+              <td class="action-checkbox">
+                <input type="checkbox" v-bind:value="item.id" v-model="selected_ids">
+              </td>
+              <th>
+                <a :href="'/admin/comment?uid=' + item.uid">{{item.usrInfo.name}}</a>
+              </th>
+              <th><p>{{item.usrInfo.email}}</p></th>
+              <th><a :href="'/admin/comment/add?change=' + item.id">{{bodyAbbr(item.content)}}</a></th>
+              <th><p>{{item.postTitle}}</p></th>
+              <th><p>{{formDate(item.createdDate)}}</p></th>
+            </tr>
             </tbody>
           </table>
         </div>
@@ -82,10 +79,11 @@
         mixins: [mixin_auth],
         data() {
           return {
-            uri: '/api/post',
+            uri: '/api/comment',
+            uid: null,
             msg: "",
             alert: false,
-            posts: [],
+            comments: [],
             selected_ids: [],
             selected_all: false,
 
@@ -101,18 +99,22 @@
           }
         },
         mounted: function () {
+          this.uid = getUrlParms("uid")
           this.load(1)
           this.getuser()
         },
         methods: {
           load: function (page) {
-            let url = this.uri
-            axios.get(`${url}?start=${page}&size=20`).then(function (response) {
-              vue.posts = response.data.payload.content
+            let url = `${this.uri}?start=${page}&size=20`
+            if (this.uid) {
+              url += `&uid=${this.uid}`
+            }
+            axios.get(url).then(function (response) {
+              vue.comments = response.data.payload.content
               vue.pagination = response.data.payload
             }).catch(function (error) {
               vue.alert = true
-              vue.msg = "error occurs when trying to get posts"
+              vue.msg = "error occurs when trying to get comments"
               show_message(vue)
             });
           },
@@ -124,7 +126,13 @@
                 Authorization: getToken()
               }
             }).then(function (response) {
-              window.location.href = "/admin/blog/vue/delete"
+              axios.delete(`${vue.uri}/bulk_delete`, {
+                headers: {
+                  Authorization: getToken()
+                }
+              }).then(function (response) {
+                vue.load(1)
+              });
             }).catch(function (err) {
               let data = err.response.data
               vue.msg = data.msg
@@ -138,7 +146,7 @@
               vue.selected_all = false
             } else {
               vue.selected_ids = [];
-              vue.categories.forEach((item) => {vue.selected_ids.push(item.id)})
+              vue.comments.forEach((item) => {vue.selected_ids.push(item.id)})
             }
           },
 

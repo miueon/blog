@@ -55,7 +55,6 @@ class PostDO {
                 createdBy: String,
                 modifiedDate: LocalDateTime,
                 cid: Int
-
     ){
         this.id = id
         this.uid = uid

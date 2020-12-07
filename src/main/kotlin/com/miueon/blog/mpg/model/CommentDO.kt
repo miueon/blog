@@ -36,6 +36,10 @@ class CommentDO(var pid: Int? = null,
     @TableField("createdDate")
     var createdDate: LocalDateTime = LocalDateTime.now(ZoneId.of("+08:00"))
 
+    @TableField(exist = false)
+    var postTitle: String? = null
+    @TableField(exist = false)
+    var usrInfo:CommentUserInfo? = null
     override fun toString(): String {
         return "CommentDO{" +
                 "id=" + id +

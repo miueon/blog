@@ -4,6 +4,7 @@ package com.miueon.blog.controller
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page
 import com.miueon.blog.mpg.model.CategoryDO
 import com.miueon.blog.mpg.IdList
+import com.miueon.blog.mpg.IdListDTO
 import com.miueon.blog.service.*
 import com.miueon.blog.util.ApiException
 import com.miueon.blog.util.Page4Navigator
@@ -83,8 +84,8 @@ class CategoryController {
 
 
     @PostMapping("/bulk_delete")
-    fun bulkDeletePrep(@RequestBody idList: IdList): Reply<Unit> {
-        bulkDelete.prepToDelete(idList, DELETEKEY.CATEGORY)
+    fun bulkDeletePrep(@RequestBody idList: IdListDTO): Reply<Unit> {
+        bulkDelete.prepToDelete(idList.ids, DELETEKEY.CATEGORY)
         return Reply.success()
     }
 

@@ -1,21 +1,16 @@
 package com.miueon.blog.controller
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page
-import com.miueon.blog.mpg.CommentDTO
-import com.miueon.blog.mpg.IdList
+import com.miueon.blog.mpg.*
 import com.miueon.blog.mpg.model.CommentDO
-import com.miueon.blog.service.BulkDelete
-import com.miueon.blog.service.CommentService
-import com.miueon.blog.service.DELETEKEY
-import com.miueon.blog.service.RedisService
-import com.miueon.blog.util.ApiException
+import com.miueon.blog.service.*
 import com.miueon.blog.util.Page4Navigator
 import com.miueon.blog.util.Reply
 import com.miueon.blog.validator.Insert
 import com.miueon.blog.validator.Update
+import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
-import org.springframework.http.ResponseEntity
 import org.springframework.validation.annotation.Validated
 import org.springframework.web.bind.annotation.*
 import javax.validation.constraints.Min
@@ -28,8 +23,10 @@ class CommentController
 constructor(
         val commentService: CommentService,
         val redisService: RedisService,
-        val bulkDelete: BulkDelete
+        val bulkDelete: BulkDelete,
+        val userService: UserService
 ) {
+    val logger = LoggerFactory.getLogger(this.javaClass)
 
     @GetMapping("/post")
     @ResponseBody
@@ -42,6 +39,30 @@ constructor(
             it.uid = null
         }
         return Reply.success(result)
+    }
+
+    @GetMapping("/{id}")
+    @ResponseBody
+    @ResponseStatus(HttpStatus.OK)
+    fun getCommentById(@PathVariable @NotBlank(message = "the id shouldn't be empty") id: Int): Reply<CommentDTO> {
+        return Reply.success(CommentDTO.fromDO(commentService.getById(id)))
+    }
+
+
+    @GetMapping("/post_title")
+    @ResponseBody
+    @ResponseStatus(HttpStatus.OK)
+    fun getPostTitleList(): Reply<List<PostTitle>> {
+        return Reply.success(commentService.getPostTitleList())
+    }
+
+    @GetMapping("/comment_usrInfo/{name}")
+    @ResponseBody
+    @ResponseStatus(HttpStatus.OK)
+    fun getCommentUsrInfoByName(@PathVariable("name") @NotBlank(message = "offer user name to get its info")
+                                usrName: String): Reply<CommentUserInfo> {
+        val rawInfo = userService.getRawUser(usrName)
+        return Reply.success(CommentUserInfo.fromDO(rawInfo))
     }
 
     @PostMapping
@@ -58,9 +79,11 @@ constructor(
     @ResponseBody
     @ResponseStatus(HttpStatus.OK)
     fun getComments(@RequestParam(value = "start", defaultValue = "1") start: Int,
-                    @RequestParam(value = "size", defaultValue = "20") size: Int
+                    @RequestParam(value = "size", defaultValue = "20") size: Int,
+                    @RequestParam(value = "uid") uid: Int?
     ): Reply<Page4Navigator<CommentDO>> {
-        val pages = commentService.getComments(Page(start.toLong(), size.toLong()), 5)
+        logger.info(" uid: {}", uid)
+        val pages = commentService.getComments(Page(start.toLong(), size.toLong()), 5, uid)
         return Reply.success(pages)
     }
 
@@ -75,8 +98,8 @@ constructor(
     @PostMapping("/bulk_delete")
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
-    fun bulkDeletePrep(@RequestBody idList: IdList): Reply<Unit> {
-        bulkDelete.prepToDelete(idList, DELETEKEY.COMMENT)
+    fun bulkDeletePrep(@RequestBody idList: IdListDTO): Reply<Unit> {
+        bulkDelete.prepToDelete(idList.ids, DELETEKEY.COMMENT)
         return Reply.success()
     }
 

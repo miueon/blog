@@ -3,6 +3,7 @@ package com.miueon.blog.controller
 
 import com.miueon.blog.mpg.CommentUserInfo
 import com.miueon.blog.service.UserService
+import com.miueon.blog.util.Reply
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -12,6 +13,7 @@ import org.springframework.validation.annotation.Validated
 import org.springframework.web.bind.annotation.*
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
+import javax.validation.constraints.NotBlank
 import kotlin.streams.toList
 
 @RestController
@@ -36,6 +38,11 @@ class UserAuthController{
     @GetMapping("/user")
     fun getUser():ResponseEntity<userDto> {
         return sharedReturnInfo()
+    }
+
+    @GetMapping("/check_user")
+    fun checkUser(@RequestParam("name")@NotBlank name:String): ResponseEntity<Reply<Unit>> {
+        return ResponseEntity(Reply.success(), HttpStatus.OK)
     }
 
     @GetMapping("/admin")
