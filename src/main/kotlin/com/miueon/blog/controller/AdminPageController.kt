@@ -39,10 +39,6 @@ class AdminPageController {
         return  "admin/addPost"
     }
 
-    @GetMapping("/blog/post/delete")
-    fun deletePost():String{
-        return "admin/deletePost"
-    }
 
     @GetMapping("/blog/tag")
     fun blogTag(): String {
@@ -54,10 +50,6 @@ class AdminPageController {
         return "admin/addTag"
     }
 
-    @GetMapping("/blog/tag/delete")
-    fun deleteTag(): String {
-        return "admin/deleteTag"
-    }
 
 
     @GetMapping("/comment")

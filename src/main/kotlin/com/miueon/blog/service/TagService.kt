@@ -20,6 +20,7 @@ interface TagService {
     fun saveTag(name: String): TagsDO
     fun updateForId(id: Int, name: String)
     fun deleteForId(id: Int)
+    fun bulkDelete(ids: List<Int>)
 }
 
 @Service
@@ -28,6 +29,15 @@ class TagServiceImpl : TagService {
     lateinit var tagsMapper: TagsMapper
     @Autowired
     lateinit var tagPostService: TagPostService
+
+    @Transactional
+    override fun bulkDelete(ids: List<Int>) {
+        ids.forEach {
+            tagPostService.deleteByTid(it)
+        }
+        tagsMapper.deleteBatchIds(ids)
+        return
+    }
 
     override fun getTags(page: Page<TagsDO>, navigatePages: Int): Page4Navigator<TagsDO> {
         val ktQueryWrapper = KtQueryWrapper(TagsDO::class.java)

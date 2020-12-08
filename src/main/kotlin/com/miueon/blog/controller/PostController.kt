@@ -5,6 +5,7 @@ import com.miueon.blog.config.RedisConfig
 import com.miueon.blog.exceptions.ApiException
 import com.miueon.blog.mpg.model.PostDO
 import com.miueon.blog.mpg.IdList
+import com.miueon.blog.mpg.IdListDTO
 import com.miueon.blog.service.BulkDelete
 import com.miueon.blog.service.DELETEKEY
 import com.miueon.blog.service.PostService
@@ -96,6 +97,7 @@ class PostController {
                     @RequestParam(value = "size", defaultValue = "5")
                     @ApiParam("each page size") size: Int,
                     @RequestParam(value = "cid") cid:Int?
+
     )
             : ResponseEntity<Reply<Page4Navigator<PostDO>>> {
 
@@ -115,6 +117,13 @@ class PostController {
         return ResponseEntity(Reply.success(pages), HttpStatus.OK)
     }
 
+    @GetMapping("/tag/{tid}")
+    @ResponseBody
+    @ResponseStatus(HttpStatus.OK)
+    fun getPostListByTag(@PathVariable("tid") tid: Int):Reply<List<PostDO>> {
+        return Reply.success(tagPostService.getPostListByTagId(tid))
+    }
+
     @PostMapping("/tags")
     fun getPostListByTags(@RequestParam(value = "start", defaultValue = "1")
                           @ApiParam("page number") start: Int,
@@ -131,8 +140,8 @@ class PostController {
     }
 
     @PostMapping("/bulk_delete")
-    fun bulkDeletePrep(@RequestBody idList: IdList): Reply<Unit> {
-        bulkDelete.prepToDelete(idList, DELETEKEY.POST)
+    fun bulkDeletePrep(@RequestBody idList: IdListDTO): Reply<Unit> {
+        bulkDelete.prepToDelete(idList.ids, DELETEKEY.POST)
         return Reply.success()
     }
 

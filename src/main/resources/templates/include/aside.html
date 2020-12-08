@@ -34,7 +34,7 @@
       <h3 class="widget-title">Categories</h3>
       <ul>
         <li v-for="cs in categories">
-          <a :href="'category?cid=' + cs.id"> {{cs.name}}
+          <a :href="'/index?cid=' + cs.id"> {{cs.name}}
             <span class="post-count">{{'(' + cs.postCount + ')'}}</span>
           </a>
         </li>
@@ -44,9 +44,9 @@
     <div class="widget widget-tag-cloud">
       <h3 class="widget-title">Tag cloud</h3>
       <ul>
-        <li v-for="ts in tags">
-          <a :href="'tag?tid=' + ts.id"> {{ts.name}}
-            <span class="post-count">{{'(' + ts.postCount + ')'}}</span>
+        <li v-bind:value="ts.id" v-for="ts in tags">
+          <a :href="'/index?tid='+ts.id"> {{ts.name}}
+            {{'(' + ts.postCount + ')'}}
           </a>
         </li>
       </ul>

@@ -1,0 +1,151 @@
+<script src="https://cdn.jsdelivr.net/npm/vue@2.6.12"></script>
+<div th:fragment="html" xmlns:th="http://www.thymeleaf.org">
+  <ul class="messagelist" v-show="msg.length > 0">
+    <li class="success" v-if="!alert">
+      <p v-html="msg"></p>
+    </li>
+    <li class="error" v-else>
+      <p v-html="msg"></p>
+    </li>
+  </ul>
+  <div id="content" class="flex">
+    <h1>Choose tag to modify</h1>
+    <div id="content-main">
+      <ul class="object-tools">
+        <li>
+          <a href="/admin/blog/tag/add" class="addlink">Add tag</a>
+        </li>
+      </ul>
+      <div class="module" id="changelist">
+        <div class="actions">
+          <label>Action:
+            <button class="btn btn-danger" @click="bulk_delete">Delete</button>
+          </label>
+          <span class="action-counter" style="display: inline;">
+            {{"you have choose " + selected_ids.length + " of " + tags.length }}
+            <!--            -->
+          </span>
+        </div>
+
+        <div class="results">
+          <table id="result_list">
+            <thead>
+            <tr>
+              <th scope="col" class="action-checkbox-column">
+                <div class="text">
+                  <span><input type="checkbox" @click="select_all" value="true" v-model="selected_all"></span>
+                </div>
+                <div class="clear"></div>
+              </th>
+              <th scope="col">
+                <div class="text"><span>tag</span></div>
+                <div class="clear"></div>
+              </th>
+            </tr>
+            </thead>
+
+            <tbody v-for="(item, index) in tags">
+            <tr v-bind:class="{row1:index % 2 === 0, row2: index % 2 !== 0}">
+              <td class="action-checkbox">
+                <input type="checkbox" v-bind:value="item.id" v-model="selected_ids">
+              </td>
+              <th>
+                <a :href="'/admin/blog/tag/add?change=' + item.id">{{item.name}}</a>
+              </th>
+            </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div th:replace="admin/include/pagination::html"></div>
+
+      </div>
+
+    </div>
+  </div>
+
+  <script type="text/babel">
+    let tag
+    $(function () {
+      tag = new Vue({
+        el: "#container",
+        mixins: [mixin_auth],
+        data() {
+          return {
+            uri: '/api/tag',
+            msg: "",
+            alert: false,
+            tags: [],
+            selected_ids: [],
+            selected_all: false,
+
+            pagination: {
+              current: 0,
+              isHasContent: false,
+              isHasNext: false,
+              isHasPrevious: false,
+              navigatePageNums: [],
+              navigatePages: 0,
+              totalPages: 0
+            },
+          }
+        },
+        mounted: function () {
+          this.load(1)
+          this.getuser()
+        },
+        methods: {
+          load: function (page) {
+            let url = this.uri
+            axios.get(`${url}?start=${page}&size=20`).then(function (response) {
+              tag.tags = response.data.payload.content
+              tag.pagination = response.data.payload
+            }).catch(function (err) {
+              tag.alert = true
+              tag.msg = "error occurs when trying to get tags"
+              show_message(tag)
+            });
+          },
+          bulk_delete: function () {
+            axios.post(`${tag.uri}/bulk_delete`, {
+              ids: tag.selected_ids
+            }, {
+              headers: {
+                Authorization: getToken()
+              }
+            }).then(function (response) {
+              axios.delete(`${tag.uri}/bulk_delete`, {
+                headers: {
+                  Authorization: getToken()
+                }
+              }).then(function (response) {
+                tag.load(1)
+              });
+            }).catch(function (err) {
+              let data = err.response.data
+              tag.msg = data.msg
+              tag.alert = true
+              show_message(tag)
+            });
+          },
+          select_all: function () {
+            if (tag.selected_all)  {
+              tag.selected_ids = [];
+              tag.selected_all = false
+            } else {
+              tag.selected_ids = [];
+              tag.tags.forEach((item) => {tag.selected_ids.push(item.id)})
+            }
+          },
+
+          jump: function (page) {
+            jump(page, tag)
+          },
+          jumpByNumber: function (page) {
+            jumpByNumber(page, tag)
+          }
+        }
+      })
+    })
+  </script>
+</div>

@@ -1,0 +1,164 @@
+<script src="https://cdn.jsdelivr.net/npm/vue@2.6.12"></script>
+<div th:fragment="html" xmlns:th="http://www.thymeleaf.org">
+  <ul class="messagelist" v-show="msg.length > 0">
+    <li class="success" v-if="!alert">
+      <p v-html="msg"></p>
+    </li>
+    <li class="error" v-else>
+      <p v-html="msg"></p>
+    </li>
+  </ul>
+
+  <div id="content" class="colMS">
+    <h1>Add tag</h1>
+    <div id="content-main">
+
+<!--      <ul class="object-tools" v-if="change">-->
+<!--        <li>-->
+<!--          <a :href="'/admin/blog/post?cid='+ id" class="addlink">related posts</a>-->
+<!--        </li>-->
+<!--      </ul>-->
+      <form id="tag_form">
+        <div>
+          <fieldset class="module aligned ">
+            <div class="form-row field-name">
+              <div>
+                <label class="required" for="id_name">tag name:</label>
+                <input type="text" v-model="name" class="vTextField" maxlength="100" required id="id_name">
+              </div>
+            </div>
+          </fieldset>
+          <div class="submit-row">
+            <p class="deletelink-box">
+              <button class="btn btn-danger"  type="button" @click="delete_this" v-if="change">Delete</button>
+            </p>
+            <button class="btn btn-default" type="button" @click="save">Save</button>
+            <button type="button" class="btn btn-default" @click="save_add">Save & Add again</button>
+            <button type="button" class="btn btn-default" @click="save_edit">Save & edit</button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+  <script type="text/babel" data-type="module">
+    let add_tag
+    import {Save} from "/js/component/save.js";
+
+    let save_worker
+    $(function () {
+      add_tag = new Vue({
+        el: "#container",
+        mixins: [mixin_auth],
+        data() {
+          return {
+            uri: '/api/tag',
+            msg: "",
+            alert: false,
+            name: "",
+            old_name: "",
+            change: false,
+            id: null
+          }
+        },
+        mounted: function () {
+          this.id = getUrlParms("change")
+          if (this.id !== null) {
+            this.change = true
+            this.id = Number.parseInt(this.id)
+            axios.get(this.uri + `/${this.id}`, {
+              headers: {
+                Authorization: getToken()
+              }
+            }).then(function (response) {
+              console.log(response.data)
+              add_tag.name = response.data.payload.name
+              add_tag.old_name = add_tag.name
+            }).catch(function (err) {
+              add_tag.alert = true
+              add_tag.msg = `tag for cid: ${add_tag.id} not exist.`
+              show_message(add_tag)
+              add_tag.change = false
+              add_tag.id = null
+            });
+          }
+          this.getuser();
+          save_worker = new Save(this, getToken());
+        },
+        methods: {
+          check_length: function () {
+            if (this.name.length === 0) {
+              this.msg = "the tag name shouldn't be empty."
+              this.alert = true
+              show_message(this)
+              return true
+            } else if (this.change && this.old_name === this.name) {
+              this.msg = "You don't change it a bit."
+              this.alert = true
+              show_message(this)
+              return true
+            }
+            return false
+          },
+          error_handler: function (error) {
+            add_tag.old_name = add_tag.name
+            console.log(error.response)
+            add_tag.msg = error.response.data.msg
+            add_tag.alert = true
+            show_message(add_tag)
+          },
+          save: function () {
+            save_worker.save({name: this.name},
+              `tag ${add_tag.name} is added, redirect to tag page in 2s.`,
+              "/admin/blog/tag"
+            )
+            this.old_name = this.name
+          },
+          save_add: function () {
+            save_worker.save_add({name: this.name},
+              `tag ${add_tag.name} is added, you can add again.`,
+              "/admin/blog/tag/add"
+            )
+            this.old_name = this.name
+          },
+          update: function () {
+            return axios.put(this.uri + `/${this.id}`, {
+              name: add_tag.name
+            }, {
+              headers: {
+                Authorization: getToken()
+              }
+            }).then(response => {
+              console.log(add_tag.id)
+              add_tag.msg = `tag for id: ${add_tag.id} updated to ${add_tag.name}`
+              add_tag.alert = false
+              show_message(add_tag)
+            });
+          },
+          save_edit: function () {
+            save_worker.save_edit({
+              name: this.name
+            }, `tag ${add_tag.name} added`);
+            this.old_name = this.name
+          },
+          delete_this: function () {
+            axios.post(`${add_tag.uri}/bulk_delete`, {
+              ids: [add_tag.id]
+            }, {
+              headers: {
+                Authorization: getToken()
+              }
+            }).then(function (response) {
+              axios.delete(`${add_tag.uri}/bulk_delete`, {
+                headers: {
+                  Authorization: getToken()
+                }
+              }).then(function (response) {
+                window.location.href = `/admin/blog/tag`;
+              })
+            });
+          }
+        }
+      })
+    })
+  </script>
+</div>

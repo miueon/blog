@@ -8,6 +8,8 @@ import com.miueon.blog.mpg.model.PostDO
 import com.miueon.blog.mpg.model.PostTagsDO
 import com.miueon.blog.mpg.model.TagsDO
 import com.miueon.blog.mpg.IdList
+import com.miueon.blog.mpg.mapper.CategoryMapper
+import com.miueon.blog.mpg.model.CategoryDO
 import com.miueon.blog.util.ApiException
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
@@ -34,9 +36,13 @@ class TagPostServiceImpl : TagPostService {
 
     @Autowired
     lateinit var postMapper: PostMapper
-
+    @Autowired
+    lateinit var categoryMapper: CategoryMapper
     @Autowired
     lateinit var postTagsMapper: PostTagsMapper
+
+    @Autowired
+    lateinit var commentService: CommentService
 
     private val logger = LoggerFactory.getLogger(this.javaClass)
 
@@ -95,7 +101,15 @@ class TagPostServiceImpl : TagPostService {
     }
 
     override fun getPostListByTagId(tid: Int): List<PostDO> {
-        return getById(tid, Either.POSTBYTAG)
+        val result: List<PostDO> = getById(tid, Either.POSTBYTAG)
+        result.forEach {
+            it.category = when (it.cid) {
+                null -> CategoryDO.unclassified
+                else -> categoryMapper.selectById(it.cid)
+            }
+            it.commentCounts = commentService.getCountsByPid(it.id!!)
+        }
+        return result.sortedByDescending { it.createdDate }
     }
 
     private fun isPidExist(pid: Int): Boolean {

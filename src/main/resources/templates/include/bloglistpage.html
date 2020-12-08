@@ -24,17 +24,37 @@
             },
             posts: [],
             postCondition: false,
-            toc: false
+            toc: false,
+            cid: null,
+            tid: null
           }
         },
         mounted: function () {
-          this.load(1)
-          console.log(this.posts)
+          this.cid = getUrlParms("cid")
+          this.tid = getUrlParms("tid")
+          if (this.tid) {
+            this.load_by_tag()
+          } else {
+            this.load(1);
+          }
+          this.getuser()
+          this.getCategories(this)
+          this.getTags(this)
         },
         methods: {
+          load_by_tag: function () {
+            let url = `${this.uri}/tag/${this.tid}`
+            axios.get(url).then(function (response) {
+              bloglist.reply.msg = response.data.msg
+              bloglist.posts = response.data.payload
+            });
+          },
           load: function (page) {
-            let url = this.uri
-            axios.get(`${url}?start=${page}&size=5`).then(function (response) {
+            let url = `${this.uri}?start=${page}&size=5`
+            if (this.cid) {
+              url = `${url}&cid=${this.cid}`
+            }
+            axios.get(url).then(function (response) {
               console.log(response.data)
               console.log(response.data.code)
 
@@ -45,9 +65,6 @@
               bloglist.$set(bloglist, 'postCondition', true)
               //console.log(this.pagination)
             });
-            this.getuser()
-            this.getCategories(this)
-            this.getTags(this)
           },
           formDate: function (value) {
             if (value === null) {
@@ -89,7 +106,6 @@
               <!--              todo: category, comments with jump link, reads-->
               <span class="post-category"><a href="#">{{ps.category.name}}</a></span>
               <span class="post-date"><a href="#">{{formDate(ps.createdDate)}}</a></span>
-              <span class="post-author"><a href="#">{{ps.userName}}</a></span>
               <span class="comments-link"><a :href="'detail?pid=' + ps.id">{{ps.commentCounts}} comments</a></span>
               <span class="views-count"><a :href="'detail?pid=' + ps.id">{{ps.view + "views"}}</a></span>
             </div>
@@ -111,7 +127,7 @@
       </article>
 
 
-      <ul class="text-center pagination ">
+      <ul class="text-center pagination " v-if="!tid">
         <li :class="{disabled: !pagination.isHasPrevious}">
           <a href="#nowhere" @click="jump('first')">«</a>
         </li>

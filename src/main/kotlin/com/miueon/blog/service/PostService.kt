@@ -107,7 +107,7 @@ class PostService(@Autowired
     fun findForIds(ids: List<Int>): List<PostDO> {
         try {
             return postMapper.selectBatchIds(ids)
-        }  catch (e: RuntimeException) {
+        } catch (e: RuntimeException) {
             throw ApiException(e, HttpStatus.BAD_REQUEST)
         }
     }
@@ -183,7 +183,8 @@ class PostService(@Autowired
     }
 
 
-    fun findAllByOrderByCreatedDateDescPage(page: Page<PostDO>, navigatePages: Int, cid: Int?): Page4Navigator<PostDO> {
+    fun findAllByOrderByCreatedDateDescPage(page: Page<PostDO>, navigatePages: Int, cid: Int?
+    ): Page4Navigator<PostDO> {
         val ktQueryWrapper = KtQueryWrapper(PostDO::class.java)
         if (cid != null) {
             when (cid) {
@@ -191,12 +192,13 @@ class PostService(@Autowired
                 else -> ktQueryWrapper.eq(PostDO::cid, cid)
             }
         }
+
         ktQueryWrapper.orderByDesc(PostDO::createdDate)
         return selectPage(page, ktQueryWrapper, navigatePages)
     }
 
-    private inline fun selectPage(page: Page<PostDO>, ktQueryWrapper: KtQueryWrapper<PostDO>, navigatePages:Int)
-            : Page4Navigator<PostDO>{
+    private inline fun selectPage(page: Page<PostDO>, ktQueryWrapper: KtQueryWrapper<PostDO>, navigatePages: Int)
+            : Page4Navigator<PostDO> {
         val result = postMapper.selectPage(page, ktQueryWrapper)
         result.records.map {
             it.createdBy = userService.selectById(it.uid!!).name
@@ -210,7 +212,7 @@ class PostService(@Autowired
         return Page4Navigator(result, navigatePages)
     }
 
-    fun findByIdsOrderByCreatedDateDescPage(page: Page<PostDO>, navigatePages: Int,pids: IdList)
+    fun findByIdsOrderByCreatedDateDescPage(page: Page<PostDO>, navigatePages: Int, pids: IdList)
             : Page4Navigator<PostDO> {
         val ktQueryWrapper = KtQueryWrapper(PostDO::class.java)
         ktQueryWrapper.`in`(PostDO::id, pids).orderByDesc(PostDO::createdDate)
@@ -259,6 +261,7 @@ class PostService(@Autowired
         try {
             ids.forEach {
                 tagPostService.deleteByPid(it)
+                commentService.deleteAllOfPid(it)
             }
             postMapper.deleteBatchIds(ids)
         } catch (e: RuntimeException) {

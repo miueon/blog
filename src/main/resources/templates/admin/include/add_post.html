@@ -204,7 +204,13 @@
                 Authorization: getToken()
               }
             }).then(function (response) {
-              window.location.href = `/admin/blog/post/delete?cid=${vue.id}`;
+              axios.delete(`${vue.uri}/bulk_delete`, {
+                headers: {
+                  Authorization: getToken()
+                }
+              }).then(function (response) {
+                window.location.href = `/admin/blog/post`;
+              })
             });
           },
           add_c: function () {

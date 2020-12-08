@@ -124,7 +124,13 @@
                 Authorization: getToken()
               }
             }).then(function (response) {
-              window.location.href = "/admin/blog/vue/delete"
+              axios.delete(`${vue.uri}/bulk_delete`, {
+                headers: {
+                  Authorization: getToken()
+                }
+              }).then(function (response) {
+                vue.load(1)
+              });
             }).catch(function (err) {
               let data = err.response.data
               vue.msg = data.msg

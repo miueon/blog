@@ -31,6 +31,9 @@ class CategoryDO {
         this.id = id
         this.name = name
     }
+    companion object{
+        val unclassified = CategoryDO(0, "unClassified")
+    }
 
     override fun toString(): String {
         return "CategoryDO{" +

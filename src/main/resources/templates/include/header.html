@@ -171,7 +171,8 @@
           reply: {
             code: 0,
             msg: ""
-          }
+          },
+          selected_tagIds: []
         }
       },
       methods: {
@@ -187,6 +188,7 @@
             target.tags = response.data.payload.content
           })
         }
+
       }
     }
 

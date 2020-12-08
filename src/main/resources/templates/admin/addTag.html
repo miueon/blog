@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:include="admin/include/header::html"></head>
+
+<body class=" app-blog model-category change-form" data-admin-utc-offset="28800"
+      data-new-gr-c-s-check-loaded="14.982.0">
+
+<div th:replace="include/page_pace::html"></div>
+
+
+<div id="container">
+  <div th:replace="admin/include/top::html"></div>
+  <div class="breadcrumbs">
+    <a href="/admin/">Index</a>
+    › <a href="/admin/blog/tag/">Tag</a>
+    › Add Tag
+  </div>
+  <div th:replace="admin/include/add_tag::html"></div>
+</div>
+
+</body>
+</html>

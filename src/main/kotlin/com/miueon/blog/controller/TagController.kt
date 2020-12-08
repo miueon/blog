@@ -1,8 +1,11 @@
 package com.miueon.blog.controller
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page
+import com.miueon.blog.mpg.IdListDTO
 import com.miueon.blog.mpg.model.PostDO
 import com.miueon.blog.mpg.model.TagsDO
+import com.miueon.blog.service.BulkDelete
+import com.miueon.blog.service.DELETEKEY
 import com.miueon.blog.service.TagPostService
 import com.miueon.blog.service.TagService
 import com.miueon.blog.util.ApiException
@@ -22,7 +25,8 @@ class TagController {
     lateinit var tagService: TagService
     @Autowired
     lateinit var tagPostService: TagPostService
-
+    @Autowired
+    lateinit var bulkDelete: BulkDelete
     private var logger = LoggerFactory.getLogger(this.javaClass)
 
     @GetMapping
@@ -52,6 +56,24 @@ class TagController {
         }
         val result = tagService.saveTag(tName.name!!)
         return Reply.success(result.id!!)
+    }
+
+    @PostMapping("/bulk_delete")
+    @ResponseStatus(HttpStatus.OK)
+    @ResponseBody
+    fun bulkDeletePrep(@RequestBody idList: IdListDTO): Reply<Unit> {
+        bulkDelete.prepToDelete(idList.ids, DELETEKEY.TAG)
+        return Reply.success()
+    }
+
+
+    @DeleteMapping("/bulk_delete")
+    @ResponseBody
+    @ResponseStatus(HttpStatus.OK)
+    fun batchDelete(): Reply<Unit> {
+        val ids = bulkDelete.getDeleteInfo(DELETEKEY.TAG)
+        tagService.bulkDelete(ids.toList())
+        return Reply.success()
     }
 
     @PutMapping("/{id}")
