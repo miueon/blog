@@ -161,18 +161,25 @@
       return `Bearer ${token}`;
     }
 
+
+
     let tag_category_aside = {
       data: function () {
         return {
           tagUrl: "api/tag",
           categoryUrl: "api/category",
+          archiveUrl: "api/post/archive",
+          latestUrl: "api/post/latest",
           categories: [],
           tags: [],
           reply: {
             code: 0,
             msg: ""
           },
-          selected_tagIds: []
+          archives: [],
+          year: null,
+          month: null,
+          latest: []
         }
       },
       methods: {
@@ -187,8 +194,17 @@
 
             target.tags = response.data.payload.content
           })
+        },
+        get_archives: function (t) {
+          axios.get(this.archiveUrl).then(function (response) {
+            t.archives = response.data.payload
+          })
+        },
+        get_latest: function (t) {
+          axios.get(this.latestUrl).then(function (response) {
+            t.latest = response.data.payload
+          })
         }
-
       }
     }
 

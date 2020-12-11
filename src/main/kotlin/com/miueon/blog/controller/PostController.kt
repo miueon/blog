@@ -1,11 +1,14 @@
 package com.miueon.blog.controller
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page
+import com.miueon.blog.aop.CacheTTL
 import com.miueon.blog.config.RedisConfig
 import com.miueon.blog.exceptions.ApiException
 import com.miueon.blog.mpg.model.PostDO
 import com.miueon.blog.mpg.IdList
 import com.miueon.blog.mpg.IdListDTO
+import com.miueon.blog.mpg.PostArchive
+import com.miueon.blog.mpg.PostTitle
 import com.miueon.blog.service.BulkDelete
 import com.miueon.blog.service.DELETEKEY
 import com.miueon.blog.service.PostService
@@ -30,6 +33,7 @@ import java.io.FileInputStream
 import java.io.IOException
 import java.lang.RuntimeException
 import java.net.ConnectException
+import java.time.LocalDate
 import javax.servlet.http.HttpServletResponse
 
 @RestController
@@ -38,6 +42,7 @@ import javax.servlet.http.HttpServletResponse
 class PostController {
     @Autowired
     lateinit var postService: PostService
+
     @Autowired
     lateinit var tagPostService: TagPostService
 
@@ -49,26 +54,53 @@ class PostController {
 
     private var log = LoggerFactory.getLogger(this.javaClass)
 
-    class postCache
 
     private fun getHtmlAndToc(content: String): Pair<String, String> {
         val document = TocSub.PARSER.parse(content)
         return TocSub.RENDERER.render(document) to TocSub.TOC_HTML.get(document)
     }
 
+    @GetMapping("/archive")
+    @ResponseBody
+    @ResponseStatus(HttpStatus.OK)
+    fun getArchiveData(): Reply<List<PostArchive>> {
+        return Reply.success(postService.getArchiveData())
+    }
+
+    @GetMapping("/latest")
+    @ResponseBody
+    @ResponseStatus(HttpStatus.OK)
+    fun getLatestPostInfo(): Reply<List<PostTitle>> {
+        return Reply.success(postService.getLatestPostInfo())
+    }
+
+    @GetMapping("/archive/{date}")
+    @ResponseBody
+    @ResponseStatus(HttpStatus.OK)
+    fun getPostsByDate(@PathVariable(name = "date") date: String,
+                       @RequestParam(name = "start", defaultValue = "1") start: Long,
+                       @RequestParam(name = "size", defaultValue = "5") size: Long
+    ): Reply<Page4Navigator<PostDO>> {
+        val splitResult = date.split("-")
+        val year = splitResult[0].toInt()
+        val month = splitResult[1].toInt()
+        log.info(" year:{}, month:{}", year, month)
+        return Reply.success(postService.getPostsByDate(Page(start, size), year, month, 5))
+    }
+
     /**
      * get post by id.
      * @param id
      * @return PostDO with additional info
-      */
+     */
     @ApiOperation("get post by id in PathVariable")
     @GetMapping("/{id}")
     fun getPost(@PathVariable id: Int,
-                @RequestParam(value = "change", defaultValue = "false") change:Boolean?): ResponseEntity<Reply<PostDO>> {
+                @RequestParam(value = "change", defaultValue = "false") change: Boolean?): ResponseEntity<Reply<PostDO>> {
         log.debug("REST request to get Post : {}", id)
         // redisService.del(RedisConfig.REDIS_KEY_DATABASE +"post$id")
 //        var post = redisService[RedisConfig.REDIS_KEY_DATABASE + "post$id"]
-//        // todo
+//
 //
 //        if (post == null) {
 //            val tmp = postService.findForId(id) ?: throw ApiException("post not exist", HttpStatus.NOT_FOUND)
@@ -96,7 +128,7 @@ class PostController {
                     @ApiParam("page number") start: Int,
                     @RequestParam(value = "size", defaultValue = "5")
                     @ApiParam("each page size") size: Int,
-                    @RequestParam(value = "cid") cid:Int?
+                    @RequestParam(value = "cid") cid: Int?
 
     )
             : ResponseEntity<Reply<Page4Navigator<PostDO>>> {
@@ -120,7 +152,7 @@ class PostController {
     @GetMapping("/tag/{tid}")
     @ResponseBody
     @ResponseStatus(HttpStatus.OK)
-    fun getPostListByTag(@PathVariable("tid") tid: Int):Reply<List<PostDO>> {
+    fun getPostListByTag(@PathVariable("tid") tid: Int): Reply<List<PostDO>> {
         return Reply.success(tagPostService.getPostListByTagId(tid))
     }
 
@@ -130,7 +162,7 @@ class PostController {
                           @RequestParam(value = "size", defaultValue = "5")
                           @ApiParam("each page size") size: Int,
                           @RequestBody tags: IdList
-                          )
+    )
             : ResponseEntity<Reply<Page4Navigator<PostDO>>> {
         val pids = tagPostService.getPostIdsByTags(tags)
         val pages = postService.findByIdsOrderByCreatedDateDescPage(
@@ -167,7 +199,7 @@ class PostController {
 
     data class keywordDto(val keyword: String)
 
-//    @PostMapping("/search")
+    //    @PostMapping("/search")
 //    fun search(@RequestBody k: keywordDto): ResponseEntity<List<PostDTO>?> {
 //        log.debug("REST request to search keyword: {}", k.keyword)
 //        val posts = postService.findByKeyword(k.keyword)
@@ -178,12 +210,13 @@ class PostController {
 //
 //    }
     data class PostDTO(val title: String,
-                       val body:String,
-                       val cid:Int?,
-                       val tagIdList:List<Int>
-                       )
+                       val body: String,
+                       val cid: Int?,
+                       val tagIdList: List<Int>
+    )
+
     @PostMapping
-    fun addPost(@RequestBody dto: PostDTO):Reply<Int> {
+    fun addPost(@RequestBody dto: PostDTO): Reply<Int> {
         val postDO = PostDO()
         postDO.title = dto.title
         postDO.body = dto.body
@@ -217,6 +250,7 @@ class PostController {
         }
         return body
     }
+
     @ApiOperation("download markdown file.")
     @GetMapping("/download")
     fun downloadMdFile(@RequestParam("pid") pid: Int, response: HttpServletResponse): String {
@@ -251,7 +285,7 @@ class PostController {
     }
 
     //@ApiOperation("update post by id")
-   // @PutMapping("/{id}")
+    // @PutMapping("/{id}")
     fun editPost(@PathVariable id: Int, title: String, md: MultipartFile): Reply<Unit> {
         saveMdFile(id, md)
         val post = PostDO()
@@ -264,7 +298,7 @@ class PostController {
     @ApiOperation("update post by id")
     @PutMapping("/{id}")
     @ResponseBody
-    fun updatePost(@PathVariable id: Int,@RequestBody dto: PostDTO):Reply<Unit> {
+    fun updatePost(@PathVariable id: Int, @RequestBody dto: PostDTO): Reply<Unit> {
         val post = postService.findForId(id)
 
         post.title = dto.title
@@ -279,7 +313,7 @@ class PostController {
     @ApiOperation("delete post by id")
     @DeleteMapping("/{id}")
     @ResponseBody
-    fun deletePost(@PathVariable id: Int):Reply<Unit> {
+    fun deletePost(@PathVariable id: Int): Reply<Unit> {
         postService.findForId(id)
         try {
             redisService.del(RedisConfig.REDIS_KEY_DATABASE + "post$id")

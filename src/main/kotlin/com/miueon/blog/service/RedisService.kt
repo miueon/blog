@@ -40,7 +40,7 @@ interface RedisService {
     /**
      * 判断是否有该属性
      */
-    fun hasKey(key: String?): Boolean?
+    fun hasKey(key: String?): Boolean
 
     /**
      * 按delta递增
@@ -150,25 +150,27 @@ interface RedisService {
     /**
      * 向List结构中添加属性
      */
-    fun lPush(key: String?, value: Any?): Long?
-
+    fun lrPush(key: String?, value: Any?): Long?
+    fun llPush(key: String?, value: Any?):Long?
     /**
      * 向List结构中添加属性
      */
-    fun lPush(key: String?, value: Any?, time: Long): Long?
+    fun lrPush(key: String?, value: Any?, time: Long): Long?
 
     /**
      * 向List结构中批量添加属性
      */
-    fun lPushAll(key: String?, vararg values: Any?): Long?
+    fun lrPushAll(key: String?, vararg values: Any?): Long?
 
     /**
      * 向List结构中批量添加属性
      */
-    fun lPushAll(key: String?, time: Long?, vararg values: Any?): Long?
+    fun lrPushAll(key: String?, time: Long?, vararg values: Any?): Long?
 
     /**
      * 从List结构中移除属性
      */
     fun lRemove(key: String?, count: Long, value: Any?): Long?
+
+    fun lrPop(key: String?):Any?
 }

@@ -9,24 +9,20 @@
     </div>
 
     <div class="widget widget-recent-posts">
-      <h3 class="widget-title">最新文章</h3>
-      <ul>
+      <h3 class="widget-title">Latest post</h3>
+      <ul  v-for="p in latest">
         <li>
-          <a href="http://192.168.0.102:8000/posts/1/">Markdown 与代码高亮测试</a>
-        </li>
-        <li>
-          <a href="http://192.168.0.102:8000/posts/187/">重要状态服务管理地方最新</a>
+          <a :href="'/detail?pid=' + p.id">{{p.title}}</a>
         </li>
       </ul>
     </div>
     <div class="widget widget-archives">
-      <h3 class="widget-title">归档</h3>
+      <h3 class="widget-title">archives</h3>
       <ul>
-        <li>
-          <a href="http://192.168.0.102:8000/archives/2020/10/">2020 年 10 月</a>
-        </li>
-        <li>
-          <a href="http://192.168.0.102:8000/archives/2020/9/">2020 年 9 月</a>
+        <li v-for="as in archives">
+          <a :href="'/index?year=' + as.year + '&month='+as.month">
+            {{as.year+"/" + as.month+ " (" + as.postCount + ")"}}
+          </a>
         </li>
       </ul>
     </div>
@@ -51,8 +47,8 @@
         </li>
       </ul>
     </div>
-    <div class="rss">
-      <a href="http://192.168.0.102:8000/all/rss/"><span class="ion-social-rss-outline"></span> RSS 订阅</a>
-    </div>
+<!--    <div class="rss">-->
+<!--      <a href="http://192.168.0.102:8000/all/rss/"><span class="ion-social-rss-outline"></span> RSS 订阅</a>-->
+<!--    </div>-->
   </aside>
 </div>

@@ -42,7 +42,7 @@ class RedisServiceImpl : RedisService {
         return redisTemplate.getExpire(key!!, TimeUnit.SECONDS)
     }
 
-    override fun hasKey(key: String?): Boolean? {
+    override fun hasKey(key: String?): Boolean {
         return redisTemplate.hasKey(key!!)
     }
 
@@ -134,21 +134,25 @@ class RedisServiceImpl : RedisService {
         return redisTemplate.opsForList().index(key!!, index)
     }
 
-    override fun lPush(key: String?, value: Any?): Long? {
+    override fun lrPush(key: String?, value: Any?): Long? {
         return redisTemplate.opsForList().rightPush(key!!, value!!)
     }
 
-    override fun lPush(key: String?, value: Any?, time: Long): Long? {
+    override fun lrPush(key: String?, value: Any?, time: Long): Long? {
         val index = redisTemplate.opsForList().rightPush(key!!, value!!)
         expire(key, time)
         return index
     }
 
-    override fun lPushAll(key: String?, vararg values: Any?): Long? {
+    override fun llPush(key: String?, value: Any?): Long? {
+        return redisTemplate.opsForList().leftPush(key!!, value!!)
+    }
+
+    override fun lrPushAll(key: String?, vararg values: Any?): Long? {
         return redisTemplate.opsForList().rightPushAll(key!!, *values)
     }
 
-    override fun lPushAll(key: String?, time: Long?, vararg values: Any?): Long? {
+    override fun lrPushAll(key: String?, time: Long?, vararg values: Any?): Long? {
         val count = redisTemplate.opsForList().rightPushAll(key!!, *values)
         expire(key, time!!)
         return count
@@ -156,5 +160,9 @@ class RedisServiceImpl : RedisService {
 
     override fun lRemove(key: String?, count: Long, value: Any?): Long? {
         return redisTemplate.opsForList().remove(key!!, count, value!!)
+    }
+
+    override fun lrPop(key: String?): Any? {
+        return redisTemplate.opsForList().rightPop(key!!)
     }
 }

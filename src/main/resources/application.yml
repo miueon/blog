@@ -8,6 +8,9 @@ spring:
   redis:
     timeout: 1000ms
     database: 0
+    keys:
+      archive-key: archive-key
+      latest-post: latest-post
 
   rabbitmq:
     host: localhost
@@ -39,4 +42,5 @@ mybatis-plus:
   mapper-locations: classpath:/mappers/*Mapper.xml
   configuration:
     log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+
 

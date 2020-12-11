@@ -3,12 +3,15 @@ package com.miueon.blog.service
 import com.baomidou.mybatisplus.extension.kotlin.KtQueryWrapper
 import com.baomidou.mybatisplus.extension.kotlin.KtUpdateWrapper
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page
+import com.miueon.blog.aop.CacheTTL
+import com.miueon.blog.config.RedisKeys
 import com.miueon.blog.mpg.mapper.CategoryMapper
 import com.miueon.blog.mpg.mapper.PostMapper
 import com.miueon.blog.mpg.model.CategoryDO
 import com.miueon.blog.mpg.model.PostDO
 import com.miueon.blog.mpg.IdList
-import com.miueon.blog.mpg.mapper.CommentMapper
+import com.miueon.blog.mpg.PostArchive
+import com.miueon.blog.mpg.PostTitle
 import com.miueon.blog.util.ApiException
 
 import com.miueon.blog.util.Page4Navigator
@@ -22,6 +25,7 @@ import java.io.InputStreamReader
 import java.lang.RuntimeException
 import java.nio.charset.StandardCharsets
 import java.time.LocalDateTime
+import java.time.temporal.TemporalAdjusters
 
 @Service
 class PostService(@Autowired
@@ -33,12 +37,51 @@ class PostService(@Autowired
                   @Autowired
                   var commentService: CommentService,
                   @Autowired
-                  var categoryMapper: CategoryMapper
+                  var categoryMapper: CategoryMapper,
+                  @Autowired
+                  var redisService: RedisService,
+                  @Autowired
+                  var redisKeys: RedisKeys
 //                  @Autowired
 //                  var postEService: PostEService
 ) {
 
     var downloadMdPath: String = "E:/0.PROJECT/fullstack/Blog/src/main/resources/static/md"
+
+    fun getLatestPostInfo(): List<PostTitle> {
+        return if (redisService.hasKey(redisKeys.latestPost)) {
+            return redisService.lRange(redisKeys.latestPost, 0, 4) as List<PostTitle>
+        }else {
+            val ktQueryWrapper = KtQueryWrapper(PostDO::class.java)
+            ktQueryWrapper.orderByDesc(PostDO::createdDate).last("limit 5")
+            val result = postMapper.selectList(ktQueryWrapper).map { PostTitle(it.id, it.title) }
+            redisService.lrPushAll(redisKeys.latestPost, *result.toTypedArray())
+            result
+        }
+    }
+
+    fun getArchiveData(): List<PostArchive> {
+        return if (redisService.hasKey(redisKeys.archiveKey)) {
+            redisService[redisKeys.archiveKey] as List<PostArchive>
+        } else {
+            val ktQueryWrapper = KtQueryWrapper(PostDO::class.java)
+            val postList = postMapper.selectList(ktQueryWrapper)
+            val archiveSet = HashSet<PostArchive>()
+            postList.groupBy {
+                it.createdDate.with(TemporalAdjusters.firstDayOfMonth()).toLocalDate()
+            }.forEach { (date, value) -> archiveSet.add(PostArchive(date.year, date.monthValue, value.size)) }
+            val result = archiveSet.toList().sortedByDescending { it.yearMonth }
+            redisService[redisKeys.archiveKey, result] = 3600 * 12
+            result
+        }
+    }
+
+    fun getPostsByDate(page: Page<PostDO>, year: Int, month: Int, pages: Int): Page4Navigator<PostDO> {
+        val ktQueryWrapper = KtQueryWrapper(PostDO::class.java)
+        ktQueryWrapper.orderByDesc(PostDO::createdDate)
+        ktQueryWrapper.apply("month(createdDate) = {0} and year(createdDate) = {1}", month, year)
+        return selectPage(page, ktQueryWrapper, pages)
+    }
 
     fun getPostCountByCid(cid: Int): Int {
         val ktQueryWrapper = KtQueryWrapper(PostDO::class.java)
@@ -142,6 +185,8 @@ class PostService(@Autowired
             setCid2null(postDO)
 
             postMapper.insert(postDO)
+            redisService.lrPop(redisKeys.latestPost)
+            redisService.llPush(redisKeys.latestPost, PostTitle(postDO.id, postDO.title))
             return postDO
         } catch (e: ApiException) {
             throw  e
@@ -262,6 +307,13 @@ class PostService(@Autowired
             ids.forEach {
                 tagPostService.deleteByPid(it)
                 commentService.deleteAllOfPid(it)
+            }
+            val latest = redisService.lRange(redisKeys.latestPost, 0, 4) as List<PostTitle>
+            val idsSet = ids.toSet()
+            for (item in latest) {
+                if (idsSet.contains(item.id)) {
+                    redisService.del(redisKeys.latestPost)
+                }
             }
             postMapper.deleteBatchIds(ids)
         } catch (e: RuntimeException) {

@@ -124,6 +124,8 @@
           this.getuser().then(function () {
             detail.comment_user.name  = detail.user.name
           });
+          this.get_archives(this)
+          this.get_latest(this)
         },
         methods: {
           load: function () {

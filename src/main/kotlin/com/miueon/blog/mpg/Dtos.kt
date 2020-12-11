@@ -1,5 +1,6 @@
 package com.miueon.blog.mpg
 
+import com.fasterxml.jackson.annotation.JsonIgnore
 import com.miueon.blog.mpg.model.CommentDO
 import com.miueon.blog.mpg.model.PostDO
 import com.miueon.blog.mpg.model.UserDO
@@ -21,6 +22,12 @@ class userDto(
         var isAdmin: Boolean = false
 )
 data class IdListDTO(val ids:IdList)
+
+data class PostArchive(val year:Int, val month:Int, val postCount:Int) {
+    @get:JsonIgnore
+    val yearMonth:Int
+        get() = this.year * 100 + this.month
+}
 /**
  * Author: Miueon
  *

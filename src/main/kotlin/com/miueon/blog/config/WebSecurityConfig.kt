@@ -27,16 +27,21 @@ import java.util.*
 
 @EnableWebSecurity
 class WebSecurityConfig(
-        @Autowired val userService: UserService):WebSecurityConfigurerAdapter() {
-    companion object{
-         val AUTH_LIST:List<String> = listOf(
-                 "/"
-         )
+        @Autowired val userService: UserService) : WebSecurityConfigurerAdapter() {
+    companion object {
+        val AUTH_LIST: List<String> = listOf(
+                "/api/category/**",
+                "/api/post/**",
+                "/api/tag/**"
+        )
     }
+    val admin:String = "ADMIN"
+
     @Bean("jwtAuthenticationProvider")
     fun jwtAuthenticationProvider(): AuthenticationProvider {
         return JwtAuthenticationProvider(userService)
     }
+
     @Bean("daoAuthenticationProvider")
     fun daoAuthenticationProvider(): AuthenticationProvider {
         val daoProvider = DaoAuthenticationProvider()
@@ -46,10 +51,17 @@ class WebSecurityConfig(
 
     override fun configure(http: HttpSecurity) {
         http.authorizeRequests()
-                .antMatchers("/auth/user/**").hasAnyRole("USER", "ADMIN")
-                .antMatchers("/auth/admin/**").hasRole("ADMIN")
-             //   .antMatchers("/admin/api/**").hasRole("ADMIN")
-//                .antMatchers(AUTH_WHITELIST).permitAll()
+                .antMatchers("/auth/user/**").hasAnyRole("USER", admin)
+                .antMatchers("/auth/admin/**").hasRole(admin)
+                //   .antMatchers("/admin/api/**").hasRole("ADMIN")
+                .antMatchers(HttpMethod.POST, *AUTH_LIST.toTypedArray()).hasRole(admin)
+                .antMatchers(HttpMethod.PUT, *AUTH_LIST.toTypedArray()).hasRole(admin)
+                .antMatchers(HttpMethod.DELETE, *AUTH_LIST.toTypedArray()).hasRole(admin)
+                .antMatchers(HttpMethod.PUT, "/api/comment/**").hasRole(admin)
+                .antMatchers(HttpMethod.DELETE, "/api/comment/**").hasRole(admin)
+                .antMatchers(HttpMethod.POST, "/api/comment/").hasAnyRole("USER", admin)
+                .antMatchers(HttpMethod.POST, "/api/comment/bulk_delete").hasRole(admin)
+                .antMatchers(HttpMethod.DELETE,"/api/comment/**").hasRole(admin)
 //                .antMatchers(HttpMethod.POST, "/cachedemo/v1/users/signup").permitAll()
 //                .anyRequest().authenticated()
                 .anyRequest().permitAll()
