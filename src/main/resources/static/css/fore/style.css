@@ -1,7 +1,12 @@
 .show {
 	border: 1px dotted skyblue !important;
 }
+.toc {
+	position:fixed;
+	border:1px solid black;
+	padding-bottom: inherit;
 
+}
 body {
 	font-size: 12px;
 	font-family: Arial;

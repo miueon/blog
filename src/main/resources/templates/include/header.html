@@ -25,18 +25,18 @@
   <!--  new js-->
   <script src="js/pace.min.js"></script>
 
-<!--  <link rel="stylesheet"-->
-<!--        href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/10.4.0/styles/default.min.css">-->
+  <!--  <link rel="stylesheet"-->
+  <!--        href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/10.4.0/styles/default.min.css">-->
   <link rel="stylesheet" type="text/css" href="css/default.min.css">
-<!--  <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/10.4.0/highlight.min.js"></script>-->
+  <!--  <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/10.4.0/highlight.min.js"></script>-->
   <script src="js/highlight.min.js"></script>
-<!--  <script src="https://cdn.bootcss.com/highlightjs-line-numbers.js/2.7.0/highlightjs-line-numbers.min.js"></script>-->
+  <!--  <script src="https://cdn.bootcss.com/highlightjs-line-numbers.js/2.7.0/highlightjs-line-numbers.min.js"></script>-->
   <script src="js/highlightjs-line-numbers.min.js"></script>
   <link rel="stylesheet" href="css/bnwtheme/an-old-hope.min.css">
-<!--  <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>-->
+  <!--  <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>-->
   <script src="js/polyfill.min.js"></script>
 
-<!--  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>-->
+  <!--  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>-->
   <script src="js/babel.min.js"></script>
   <style>
       .codehilite {
@@ -162,7 +162,6 @@
     }
 
 
-
     let tag_category_aside = {
       data: function () {
         return {
@@ -170,6 +169,7 @@
           categoryUrl: "api/category",
           archiveUrl: "api/post/archive",
           latestUrl: "api/post/latest",
+          searchUrl: "api/post/search",
           categories: [],
           tags: [],
           reply: {
@@ -179,7 +179,8 @@
           archives: [],
           year: null,
           month: null,
-          latest: []
+          latest: [],
+          keyWord: ""
         }
       },
       methods: {
@@ -204,6 +205,11 @@
           axios.get(this.latestUrl).then(function (response) {
             t.latest = response.data.payload
           })
+        },
+        search: function () {
+          if (this.keyWord.length > 0) {
+            window.location.href = "/index?search=" + this.keyWord
+          }
         }
       }
     }

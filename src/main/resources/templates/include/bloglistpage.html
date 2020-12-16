@@ -27,7 +27,9 @@
             postCondition: false,
             toc: false,
             cid: null,
-            tid: null
+            tid: null,
+            detail: false,
+            searchKeyWord: null
           }
         },
         mounted: function () {
@@ -35,9 +37,13 @@
           this.tid = getUrlParms("tid")
           this.year = getUrlParms("year")
           this.month =getUrlParms("month")
-          this.get_latest(this)
-          if (this.tid) {
-            this.load_by_tag()
+          this.searchKeyWord = getUrlParms("search")
+          if (!this.searchKeyWord) {
+            this.searchKeyWord = getUrlParms("q")
+          }
+          this.get_latest(this);
+          if (this.tid || this.searchKeyWord) {
+            this.load_list()
           } else {
             this.load(1);
           }
@@ -53,8 +59,13 @@
           }
         },
         methods: {
-          load_by_tag: function () {
-            let url = `${this.uri}/tag/${this.tid}`
+          load_list: function () {
+            let url
+            if (this.tid) {
+              url = `${this.uri}/tag/${this.tid}`;
+            } else {
+              url = `${this.searchUrl}?query=${this.searchKeyWord}`
+            }
             axios.get(url).then(function (response) {
               bloglist.reply.msg = response.data.msg
               bloglist.posts = response.data.payload
@@ -65,7 +76,7 @@
             if (this.cid) {
               url = `${url}&cid=${this.cid}`
             }else if (this.year && this.month) {
-              url = `${this.archiveUri}/${this.year}-${this.month}`
+              url = `${this.archiveUri}/${this.year}-${this.month}?start=${page}&size=5`
             }
             axios.get(url).then(function (response) {
               console.log(response.data)
@@ -142,23 +153,23 @@
 
       <ul class="text-center pagination " v-if="hasPages">
         <li :class="{disabled: !pagination.isHasPrevious}">
-          <a href="#nowhere" @click="jump('first')">«</a>
+          <a href="#site-header" @click="jump('first')">«</a>
         </li>
         <li :class="{ disabled: !pagination.isHasPrevious }">
-          <a href="#nowhere" @click="jump('pre')">‹</a>
+          <a href="#site-header" @click="jump('pre')">‹</a>
         </li>
 
         <li v-for="i in pagination.navigatePageNums">
-          <a href="#nowhere" v-on:click="jumpByNumber(i)">
+          <a href="#site-header" v-on:click="jumpByNumber(i)">
             {{i}}
           </a>
         </li>
 
         <li :class="{ disabled: !pagination.isHasNext }">
-          <a href="#nowhere" @click="jump('next')">›</a>
+          <a href="#site-header" @click="jump('next')">›</a>
         </li>
         <li :class="{ disabled: !pagination.isHasNext }">
-          <a href="#nowhere" @click="jump('last')">»</a>
+          <a href="#site-header" @click="jump('last')">»</a>
         </li>
       </ul>
 

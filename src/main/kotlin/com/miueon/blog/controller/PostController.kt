@@ -4,15 +4,9 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page
 import com.miueon.blog.aop.CacheTTL
 import com.miueon.blog.config.RedisConfig
 import com.miueon.blog.exceptions.ApiException
+import com.miueon.blog.mpg.*
 import com.miueon.blog.mpg.model.PostDO
-import com.miueon.blog.mpg.IdList
-import com.miueon.blog.mpg.IdListDTO
-import com.miueon.blog.mpg.PostArchive
-import com.miueon.blog.mpg.PostTitle
-import com.miueon.blog.service.BulkDelete
-import com.miueon.blog.service.DELETEKEY
-import com.miueon.blog.service.PostService
-import com.miueon.blog.service.TagPostService
+import com.miueon.blog.service.*
 import com.miueon.blog.service.impl.RedisServiceImpl
 
 import com.miueon.blog.util.Page4Navigator
@@ -44,6 +38,9 @@ class PostController {
     lateinit var postService: PostService
 
     @Autowired
+    lateinit var postEService: PostEService
+
+    @Autowired
     lateinit var tagPostService: TagPostService
 
     @Autowired
@@ -72,6 +69,14 @@ class PostController {
     @ResponseStatus(HttpStatus.OK)
     fun getLatestPostInfo(): Reply<List<PostTitle>> {
         return Reply.success(postService.getLatestPostInfo())
+    }
+
+    @GetMapping("/search")
+    @ResponseBody
+    @ResponseStatus(HttpStatus.OK)
+    fun searchPost(@RequestParam(name = "query") key: String
+    ): Reply<List<PostDO>> {
+        return Reply.success(postEService.search(key))
     }
 
     @GetMapping("/archive/{date}")
@@ -193,11 +198,12 @@ class PostController {
     @DeleteMapping("/bulk_delete")
     fun bulkDelete(): Reply<Unit> {
         val ids = bulkDelete.getDeleteInfo(DELETEKEY.POST)
+        postEService.deletePostE(ids.toList().map { it.toString() })
         postService.bulkDelete(ids.toList())
         return Reply.success()
     }
 
-    data class keywordDto(val keyword: String)
+
 
     //    @PostMapping("/search")
 //    fun search(@RequestBody k: keywordDto): ResponseEntity<List<PostDTO>?> {
@@ -222,7 +228,7 @@ class PostController {
         postDO.body = dto.body
         postDO.cid = dto.cid
         postService.savePost(postDO)
-
+        postEService.registerPostE(PostELDO.fromDO(postDO))
         tagPostService.savePostTagRel(postDO.id!!, dto.tagIdList)
 
         return Reply.success(postDO.id!!)
@@ -306,6 +312,7 @@ class PostController {
         post.cid = dto.cid
 
         postService.updatePost(post, id)
+        postEService.registerPostE(PostELDO.fromDO(post))
         tagPostService.savePostTagRel(id, dto.tagIdList)
         return Reply.success()
     }

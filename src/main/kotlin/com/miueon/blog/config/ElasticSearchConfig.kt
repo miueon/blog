@@ -24,4 +24,6 @@ class ElasticsearchConfiguration{
     fun elasticsearchTemplate(): ElasticsearchOperations {
         return ElasticsearchRestTemplate(client())
     }
+
+
 }

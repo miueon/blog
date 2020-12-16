@@ -1,16 +1,17 @@
 <script src="https://cdn.jsdelivr.net/npm/vue@2.6.12"></script>
 <div th:fragment="html" xmlns:th="http://www.thymeleaf.org">
-  <aside class="col-md-4">
-    <div class="widget widget-content" v-if="toc">
-      <h3 class="widget-title">Table of contents</h3>
-      <div class="toc">
+  <aside class="col-md-4" v-if="!detail || toc">
+    <div class="widget widget-content toc" v-if="toc && detail">
+      <h3 class="widget-title "><a href="#site-header">Table of contents</a></h3>
+      <div >
         <div v-html="toc"></div>
       </div>
     </div>
 
+    <div v-if="!detail">
     <div class="widget widget-recent-posts">
       <h3 class="widget-title">Latest post</h3>
-      <ul  v-for="p in latest">
+      <ul v-for="p in latest">
         <li>
           <a :href="'/detail?pid=' + p.id">{{p.title}}</a>
         </li>
@@ -21,7 +22,7 @@
       <ul>
         <li v-for="as in archives">
           <a :href="'/index?year=' + as.year + '&month='+as.month">
-            {{as.year+"/" + as.month+ " (" + as.postCount + ")"}}
+            {{as.year + "/" + as.month + " (" + as.postCount + ")"}}
           </a>
         </li>
       </ul>
@@ -47,8 +48,9 @@
         </li>
       </ul>
     </div>
-<!--    <div class="rss">-->
-<!--      <a href="http://192.168.0.102:8000/all/rss/"><span class="ion-social-rss-outline"></span> RSS 订阅</a>-->
-<!--    </div>-->
+    <!--    <div class="rss">-->
+    <!--      <a href="http://192.168.0.102:8000/all/rss/"><span class="ion-social-rss-outline"></span> RSS 订阅</a>-->
+    <!--    </div>-->
+    </div>
   </aside>
 </div>

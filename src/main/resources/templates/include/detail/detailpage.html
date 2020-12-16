@@ -116,7 +116,8 @@
               name: "",
               email: "",
               url: ""
-            }
+            },
+            detail: true
           }
         },
         mounted: function () {
@@ -135,7 +136,7 @@
               detail.toc = detail.post.toc
               detail.compiled_html = detail.post.body
               detail.reply.code = Number.parseInt(response.data.code)
-
+              document.title = `${detail.post.title}`
               detail.reply.msg = response.data.msg
               detail.$set(detail, 'condition', true)
             }).then(function () {

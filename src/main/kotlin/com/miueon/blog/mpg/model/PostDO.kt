@@ -51,20 +51,19 @@ class PostDO {
     @TableField(exist = false)
     var commentCounts: Int = 0
     constructor()
-    constructor(id: Int, uid: Int, title: String, body: String, createdDate: LocalDateTime,
-                createdBy: String,
-                modifiedDate: LocalDateTime,
-                cid: Int
+    constructor(id: Int?, uid: Int?, title: String?, body: String?, createdDate: LocalDateTime?,
+                modifiedDate: LocalDateTime?,
+                cid: Int?,
+                view:Int?
     ){
         this.id = id
         this.uid = uid
         this.title = title
         this.body = body
-
-        this.createdBy = createdBy
-        this.createdDate = createdDate
-        this.modifiedDate = modifiedDate
+        this.createdDate = createdDate ?: LocalDateTime.now()
+        this.modifiedDate = modifiedDate ?: LocalDateTime.now()
         this.cid = cid
+        this.view = view ?: 0
     }
     override fun toString(): String {
         return "PostDO{" +

@@ -62,6 +62,7 @@ class WebSecurityConfig(
                 .antMatchers(HttpMethod.POST, "/api/comment/").hasAnyRole("USER", admin)
                 .antMatchers(HttpMethod.POST, "/api/comment/bulk_delete").hasRole(admin)
                 .antMatchers(HttpMethod.DELETE,"/api/comment/**").hasRole(admin)
+                .antMatchers(HttpMethod.POST, "/api/post/search/**").permitAll()
 //                .antMatchers(HttpMethod.POST, "/cachedemo/v1/users/signup").permitAll()
 //                .anyRequest().authenticated()
                 .anyRequest().permitAll()

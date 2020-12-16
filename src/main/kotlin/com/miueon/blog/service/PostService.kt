@@ -187,6 +187,7 @@ class PostService(@Autowired
             postMapper.insert(postDO)
             redisService.lrPop(redisKeys.latestPost)
             redisService.llPush(redisKeys.latestPost, PostTitle(postDO.id, postDO.title))
+            redisService.del(redisKeys.archiveKey)
             return postDO
         } catch (e: ApiException) {
             throw  e
@@ -240,6 +241,19 @@ class PostService(@Autowired
 
         ktQueryWrapper.orderByDesc(PostDO::createdDate)
         return selectPage(page, ktQueryWrapper, navigatePages)
+    }
+
+    fun polishPostList(posts: List<PostDO>): List<PostDO> {
+         posts.forEach {
+            it.createdBy = userService.selectById(it.uid!!).name
+            it.category = when (it.cid) {
+                null -> CategoryDO(0, "unClassified")
+                else -> categoryMapper.selectByPrimaryKey(it.cid!!)
+            }
+            it.tags = tagPostService.getTagListByPostId(it.id!!)
+            it.commentCounts = commentService.getCountsByPid(it.id!!)
+        }
+        return posts
     }
 
     private inline fun selectPage(page: Page<PostDO>, ktQueryWrapper: KtQueryWrapper<PostDO>, navigatePages: Int)
@@ -315,6 +329,7 @@ class PostService(@Autowired
                     redisService.del(redisKeys.latestPost)
                 }
             }
+            redisService.del(redisKeys.archiveKey)
             postMapper.deleteBatchIds(ids)
         } catch (e: RuntimeException) {
             throw ApiException(e, HttpStatus.INTERNAL_SERVER_ERROR)
