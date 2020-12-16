@@ -60,6 +60,13 @@ class PostService(@Autowired
         }
     }
 
+    fun findByKeyWord(keyWord: String): List<PostDO> {
+        val ktQueryWrapper = KtQueryWrapper(PostDO::class.java)
+        ktQueryWrapper.or().like(PostDO::title, keyWord).or().like(PostDO::body, keyWord).orderByDesc(PostDO::createdDate)
+        val res =  postMapper.selectList(ktQueryWrapper)
+        return polishPostList(res)
+    }
+
     fun getArchiveData(): List<PostArchive> {
         return if (redisService.hasKey(redisKeys.archiveKey)) {
             redisService[redisKeys.archiveKey] as List<PostArchive>

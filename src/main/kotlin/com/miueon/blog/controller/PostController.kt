@@ -38,9 +38,6 @@ class PostController {
     lateinit var postService: PostService
 
     @Autowired
-    lateinit var postEService: PostEService
-
-    @Autowired
     lateinit var tagPostService: TagPostService
 
     @Autowired
@@ -76,7 +73,7 @@ class PostController {
     @ResponseStatus(HttpStatus.OK)
     fun searchPost(@RequestParam(name = "query") key: String
     ): Reply<List<PostDO>> {
-        return Reply.success(postEService.search(key))
+       return Reply.success(postService.findByKeyWord(key))
     }
 
     @GetMapping("/archive/{date}")
@@ -198,7 +195,7 @@ class PostController {
     @DeleteMapping("/bulk_delete")
     fun bulkDelete(): Reply<Unit> {
         val ids = bulkDelete.getDeleteInfo(DELETEKEY.POST)
-        postEService.deletePostE(ids.toList().map { it.toString() })
+
         postService.bulkDelete(ids.toList())
         return Reply.success()
     }
@@ -228,7 +225,7 @@ class PostController {
         postDO.body = dto.body
         postDO.cid = dto.cid
         postService.savePost(postDO)
-        postEService.registerPostE(PostELDO.fromDO(postDO))
+
         tagPostService.savePostTagRel(postDO.id!!, dto.tagIdList)
 
         return Reply.success(postDO.id!!)
@@ -312,7 +309,7 @@ class PostController {
         post.cid = dto.cid
 
         postService.updatePost(post, id)
-        postEService.registerPostE(PostELDO.fromDO(post))
+
         tagPostService.savePostTagRel(id, dto.tagIdList)
         return Reply.success()
     }

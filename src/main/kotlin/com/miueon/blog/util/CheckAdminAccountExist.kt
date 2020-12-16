@@ -19,8 +19,7 @@ import org.springframework.stereotype.Component
 class CheckAdminAccountExist : CommandLineRunner {
     @Autowired
     lateinit var userMapper: UserMapper
-    @Autowired
-    lateinit var postEService: PostEService
+
     @Autowired
     lateinit var postMapper:PostMapper
     val passwordEncoder: PasswordEncoder = PasswordEncoderFactories.createDelegatingPasswordEncoder()
@@ -38,8 +37,6 @@ class CheckAdminAccountExist : CommandLineRunner {
             userDO.password = passwordEncoder.encode("123456")
             userMapper.insert(userDO)
         }
-        val posts = postMapper.selectList(KtQueryWrapper(PostDO::class.java).orderByDesc(PostDO::createdDate))
-        postEService.init(posts.map { PostELDO.fromDO(it) })
 
     }
 }
