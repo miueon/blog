@@ -7,26 +7,23 @@ import com.miueon.blog.util.Reply
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
-import org.springframework.security.core.context.SecurityContext
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.validation.annotation.Validated
 import org.springframework.web.bind.annotation.*
-import javax.servlet.http.HttpServletRequest
-import javax.servlet.http.HttpServletResponse
 import javax.validation.constraints.NotBlank
-import kotlin.streams.toList
 
 @RestController
 @RequestMapping("/auth")
 class UserAuthController{
 
-    data class userDto(var isAdmin:Boolean? = null, var name:String? = null)
+    data class UserDto(var isAdmin:Boolean? = null, var name:String? = null)
+    data class ChangePwd(val password:String)
 
     @Autowired
     lateinit var userService: UserService
 
-    private fun sharedReturnInfo():ResponseEntity<userDto> {
-        val user = userDto()
+    private fun sharedReturnInfo():ResponseEntity<UserDto> {
+        val user = UserDto()
         val authentication = SecurityContextHolder.getContext().authentication
 //        val roles = authentication.authorities.stream().map { it.authority }.toList()
 //        println("roles $roles")
@@ -36,7 +33,7 @@ class UserAuthController{
     }
 
     @GetMapping("/user")
-    fun getUser():ResponseEntity<userDto> {
+    fun getUser():ResponseEntity<UserDto> {
         return sharedReturnInfo()
     }
 
@@ -46,17 +43,25 @@ class UserAuthController{
     }
 
     @GetMapping("/admin")
-    fun getAdmin(): ResponseEntity<userDto> {
+    fun getAdmin(): ResponseEntity<UserDto> {
         return sharedReturnInfo()
     }
 
     @PostMapping("/register")
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
-    fun regist(@RequestBody @Validated user: CommentUserInfo):userDto {
+    fun regist(@RequestBody @Validated user: CommentUserInfo):UserDto {
         val usr = user.transToDO()
         usr.password = usr.email
         userService.addUser(usr)
-        return userDto(false, user.name)
+        return UserDto(false, user.name)
+    }
+
+    @PostMapping("/admin/change_pwd")
+    @ResponseBody
+    @ResponseStatus(HttpStatus.OK)
+    fun changePwd(@RequestBody pwd: ChangePwd):Reply<Unit> {
+        userService.changePwd(pwd.password)
+        return Reply.success()
     }
 }

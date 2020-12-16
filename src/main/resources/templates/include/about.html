@@ -1,0 +1,31 @@
+<script src="https://cdn.jsdelivr.net/npm/vue@2.6.12"></script>
+<div class="container content-body" th:fragment="html" xmlns:th="http://www.thymeleaf.org">
+  <div class="row">
+    <main class="col-md-8">
+      <article class="post">
+
+        <div  class='entry-content clearfix'>
+          <h2>
+            <a name="about-me" class="md-header-anchor"></a>
+            <span>About Me.</span></h2>
+          <p><span>毕业于微电子专业, 在各种因缘会际之下目前正在努力转Java后端中.</span></p>
+          <hr /><h4>
+          <a name="技能" class="md-header-anchor"></a>
+          <span>技能:</span></h4>
+          <p><span>比较熟练的语言: C, Java, Kotlin,JS, Eng:)</span>
+          </p><p><span>SpringBoot, MySql, Redis, Html, Vue</span></p><hr />
+          <p><span>平常的爱好有: 看番, 刷技术书, 学英语</span></p><p>&nbsp;</p></div>
+      </article>
+    </main>
+
+  </div>
+
+  <script>
+    $(function () {
+      let vue = new Vue({
+        el: "#workingArea",
+        mixins: [mixin_auth, tag_category_aside],
+      })
+    })
+  </script>
+</div>

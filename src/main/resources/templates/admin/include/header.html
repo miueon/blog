@@ -93,7 +93,9 @@
         return {
           auth_uri: "/auth/user",
           user: {
-            name: ""
+            name: "",
+            password: "",
+            repeatpassword: ""
           },
           isAuthenticated: false
         }
@@ -145,6 +147,31 @@
           ).finally(() => {
             window.location.href ="/"
           })
+        },
+        changePwd: function () {
+          if (this.user.password.length === 0 || this.user.repeatpassword.length === 0) {
+            this.showErrorInModal("fill both.")
+            return
+          } else if (this.user.password !== this.user.repeatpassword) {
+            this.showErrorInModal("the two pwd not consistent.")
+            return
+          }
+          axios.post("/auth/admin/change_pwd", {
+            password: this.user.password
+          }, {
+            headers: {
+              Authorization: getToken()
+            }
+          }).then(response => {
+            $('#changePwdModal').modal('hide')
+          });
+        },
+        changePwdModal: function () {
+          $('#changePwdModal').modal('show')
+        },
+        showErrorInModal:function (error) {
+          $("span.changePwdErrorMessage").html(`${error}`);
+          $("div.changePwdErrorMessageDiv").css("visibility", "visible")
         }
       }
     }

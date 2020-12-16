@@ -23,6 +23,7 @@ import org.springframework.security.crypto.bcrypt.BCrypt
 import org.springframework.security.crypto.factory.PasswordEncoderFactories
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
 import java.lang.RuntimeException
 import java.util.*
 import javax.annotation.PostConstruct
@@ -99,6 +100,7 @@ constructor(var userMapper: UserMapper, var redisService: RedisService
                         HttpStatus.BAD_REQUEST)
     }
 
+    @Transactional
     fun addUser(usr: UserDO): UserDO {
         val ktQueryWrapper = KtQueryWrapper(UserDO::class.java)
         ktQueryWrapper.eq(UserDO::name, usr.name)
@@ -119,5 +121,13 @@ constructor(var userMapper: UserMapper, var redisService: RedisService
         }
     }
 
+    @Transactional
+    fun changePwd(pwd: String) {
+        val ktQueryWrapper = KtQueryWrapper(UserDO::class.java)
+        ktQueryWrapper.eq(UserDO::aid, 1)
+        val admin = userMapper.selectOne(ktQueryWrapper)
+        admin.password = passwordEncoder.encode(pwd)
+        userMapper.updateById(admin)
+    }
 
 }

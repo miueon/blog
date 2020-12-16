@@ -6,9 +6,10 @@
     </div>
     <div id="user-tools">
       <a href="/">Front site</a> /
-      <a href="/admin/password_change">change password</a> /
+      <a href="#" @click="changePwdModal">change password</a> /
 <!--     todo change password repalce with modal-->
       <a href="#" @click="logout">logout</a>
     </div>
   </div>
+  <div th:replace="/admin/include/modal4changepwd::html"></div>
 </div>

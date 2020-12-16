@@ -20,4 +20,9 @@ class FrontPageController {
         return "blogdetailpage"
     }
 
+    @GetMapping("/about")
+    fun about(): String {
+        return "about"
+    }
+
 }
